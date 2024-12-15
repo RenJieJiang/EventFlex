@@ -1,0 +1,25 @@
+services:
+
+
+  usermanagement.api:
+    image: ${DOCKER_REGISTRY-}usermanagementapi
+    build:
+      context: .
+      dockerfile: UserManagement.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=usermanagementdb;Username=postgres;Password=yourpassword
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: usermanagementdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+    ports:
+      - "5432:5432"

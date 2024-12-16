@@ -35,6 +35,7 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: '9.0.x'
+        timeout-minutes: 10  # Increase the timeout to 10 minutes
 
       - name: Install dotnet-ef tool
         run: dotnet tool install --global dotnet-ef

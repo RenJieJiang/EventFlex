@@ -73,8 +73,21 @@ namespace UserManagement.API.Data
             using (var scope = serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                EnsureUuidExtension(context);
                 context.Database.Migrate();
             }
+        }
+
+        /// <summary>
+        /// Ensure the uuid-ossp extension is created in the database when start the application from the visual studio
+        /// Otherwise, docker compose up --build would create it from the docker-compose.yml file
+        /// - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+        /// </summary>
+        /// <param name="context"></param>
+        private static void EnsureUuidExtension(ApplicationDbContext context)
+        {
+            var sql = "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";";
+            context.Database.ExecuteSqlRaw(sql);
         }
     }
 }

@@ -13,5 +13,6 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="init-db.sh" />
   </ItemGroup>
 </Project>

@@ -49,6 +49,10 @@ jobs:
       - name: Run tests
         run: dotnet test ./UserManagement.API/UserManagement.API.Test/UserManagement.API.Test.csproj --no-build --verbosity normal
 
+      - name: Create uuid-ossp extension
+        run: |
+          psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+
       - name: Apply migrations
         run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
 
@@ -76,5 +80,5 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             docker stop usermanagementapi || true
             docker rm usermanagementapi || true
-            docker run -d --name postgres -e POSTGRES_DB=EventFlex.UserManagement -e POSTGRES_USER=billy -e POSTGRES_PASSWORD=qazwsx1@3 -v postgres-data:/var/lib/postgresql/data -v ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh -p 5432:5432 postgres:17
+            docker run -d --name postgres -e POSTGRES_DB=EventFlex.UserManagement -e POSTGRES_USER=billy -e POSTGRES_PASSWORD=qazwsx1@3 -v postgres-data:/var/lib/postgresql/data -p 5432:5432 postgres:17
             docker run -d -p 8080:8080 --name usermanagementapi --link postgres:postgres ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest

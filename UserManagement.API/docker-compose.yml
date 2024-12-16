@@ -18,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: UserManagement.API/Dockerfile
+      args:
+        PROJECT_PATH: UserManagement.API/UserManagement.API.csproj
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=EventFlex.UserManagement;Username=billy;Password=qazwsx1@3

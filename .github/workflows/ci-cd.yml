@@ -50,6 +50,8 @@ jobs:
         run: dotnet test ./UserManagement.API/UserManagement.API.Test/UserManagement.API.Test.csproj --no-build --verbosity normal
 
       - name: Create uuid-ossp extension
+        env:
+          PGPASSWORD: qazwsx1@3
         run: |
           psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 

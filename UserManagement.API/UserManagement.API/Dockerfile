@@ -15,7 +15,7 @@ ARG CONTEXT_PATH=UserManagement.API
 WORKDIR /src
 COPY ["${PROJECT_PATH}", "UserManagement.API/"]
 RUN dotnet restore "UserManagement.API/UserManagement.API.csproj"
-COPY ${CONTEXT_PATH} .
+COPY ${CONTEXT_PATH}/ .
 WORKDIR "/src/UserManagement.API"
 RUN dotnet build "UserManagement.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

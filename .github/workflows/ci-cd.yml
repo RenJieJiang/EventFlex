@@ -72,12 +72,17 @@ jobs:
           docker tag usermanagementapi:latest ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
 
+      - name: Decode SSH key
+        run: |
+          echo "${{ secrets.AWS_EC2_KEY }}" | base64 --decode > aws_keypair.pem
+          chmod 600 aws_keypair.pem
+
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.AWS_EC2_HOST }}
           username: ${{ secrets.AWS_EC2_USER }}
-          key: ${{ secrets.AWS_EC2_KEY }}
+          key_path: aws_keypair.pem
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             docker stop usermanagementapi || true

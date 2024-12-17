@@ -97,7 +97,25 @@ jobs:
             sudo docker stop postgres || true
             sudo docker rm postgres || true
             # Run PostgreSQL container
-            sudo docker run -d --name postgres -e POSTGRES_DB=EventFlex.UserManagement -e POSTGRES_USER=billy -e POSTGRES_PASSWORD=qazwsx1@3 -v postgres-data:/var/lib/postgresql/data -p 5432:5432 postgres:17
+            sudo docker run -d --name postgres \
+            --network my_network \
+            -e POSTGRES_DB=EventFlex.UserManagement \
+            -e POSTGRES_USER=billy \
+            -e POSTGRES_PASSWORD=qazwsx1@3 \
+            -v postgres-data:/var/lib/postgresql/data \
+            -p 5432:5432 postgres:17
+            # Wait for PostgreSQL to initialize
+            sleep 10
             # Run the application container
-            sudo docker run -d -p 8080:8080 --name usermanagementapi --link postgres:postgres ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+            sudo docker run -d -p 8080:8080 -p 8081:8081 --name usermanagementapi \
+            --network my_network \
+            # --link postgres:postgres \
+            -e ConnectionStrings__DefaultConnection="Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}" \
+            ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+            # Check if the container is running
+            if [ $(sudo docker inspect -f '{{.State.Running}}' usermanagementapi) != "true" ]; then
+              echo "usermanagementapi container failed to start. Logs:"
+              sudo docker logs usermanagementapi
+              exit 1
+            fi
           debug: true  # Enable debug mode

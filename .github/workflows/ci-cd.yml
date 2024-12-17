@@ -96,10 +96,14 @@ jobs:
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Stop and remove existing containers
-            sudo docker stop usermanagementapi || true
-            sudo docker rm usermanagementapi || true
-            sudo docker stop postgres || true
-            sudo docker rm postgres || true
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^usermanagementapi\$"; then
+              sudo docker stop usermanagementapi
+              sudo docker rm usermanagementapi
+            fi
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^postgres\$"; then
+              sudo docker stop postgres
+              sudo docker rm postgres
+            fi
             # Run PostgreSQL container
             sudo docker run -d --name postgres \
             --network my_network \

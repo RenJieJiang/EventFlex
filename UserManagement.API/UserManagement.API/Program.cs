@@ -76,4 +76,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Listen on both HTTP (8080) and HTTPS (8081) ports
+app.Urls.Add("http://*:8080");
+app.Urls.Add("https://*:8081");
 app.Run();

@@ -72,28 +72,17 @@ jobs:
           docker tag usermanagementapi:latest ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
 
-      - name: Decode SSH key
-        run: |
-          echo "${{ secrets.AWS_EC2_KEY }}" | base64 --decode > aws_keypair.pem
-          chmod 600 aws_keypair.pem
-
-      - name: Create .ssh directory
-        run: |
-          mkdir -p ~/.ssh
-
-      - name: Add host to known_hosts
-        run: |
-          ssh-keyscan -H 3.107.24.209 >> ~/.ssh/known_hosts
-
       - name: Deploy to AWS EC2
-        uses: appleboy/ssh-action@v0.1.3
+        uses: appleboy/ssh-action@v0.1.7
         with:
-          host: 3.107.24.209
+          host: ec2-3-107-24-209.ap-southeast-2.compute.amazonaws.com
           username: ec2-user
-          key_path: aws_keypair.pem
+          key: ${{ secrets.AWS_EC2_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
-            docker stop usermanagementapi || true
-            docker rm usermanagementapi || true
-            docker run -d --name postgres -e POSTGRES_DB=EventFlex.UserManagement -e POSTGRES_USER=billy -e POSTGRES_PASSWORD=qazwsx1@3 -v postgres-data:/var/lib/postgresql/data -p 5432:5432 postgres:17
-            docker run -d -p 8080:8080 --name usermanagementapi --link postgres:postgres ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+            echo "SSH connection successful"
+            # docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+            # docker stop usermanagementapi || true
+            # docker rm usermanagementapi || true
+            # docker run -d --name postgres -e POSTGRES_DB=EventFlex.UserManagement -e POSTGRES_USER=billy -e POSTGRES_PASSWORD=qazwsx1@3 -v postgres-data:/var/lib/postgresql/data -p 5432:5432 postgres:17
+            # docker run -d -p 8080:8080 --name usermanagementapi --link postgres:postgres ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+          debug: true  # Enable debug mode

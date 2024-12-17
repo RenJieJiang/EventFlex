@@ -89,10 +89,12 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ec2-user
             fi
-            # Create Docker network if it doesn't exist
-            if ! sudo docker network ls | grep -q my_network; then
-              sudo docker network create my_network
+            # Remove existing network if it exists
+            if sudo docker network ls | grep -q my_network; then
+              sudo docker network rm my_network
             fi
+            # Create a new Docker network
+            sudo docker network create my_network
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Stop and remove existing containers
@@ -104,6 +106,8 @@ jobs:
               sudo docker stop postgres
               sudo docker rm postgres
             fi
+            # Wait for 2s
+            sleep 2
             # Run PostgreSQL container
             sudo docker run -d --name postgres \
             --network my_network \

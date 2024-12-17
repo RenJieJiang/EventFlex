@@ -18,7 +18,7 @@ jobs:
         env:
           POSTGRES_DB: EventFlex.UserManagement
           POSTGRES_USER: billy
-          POSTGRES_PASSWORD: qazwsx1@3
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
@@ -89,12 +89,13 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ec2-user
             fi
-            # Remove existing network if it exists
-            if sudo docker network ls | grep -q my_network; then
-              sudo docker network rm my_network
-            fi
             # Create a new Docker network
-            sudo docker network create my_network
+            if ! sudo docker network ls | grep -q my_network; then
+              echo "Docker network 'my_network' does not exist. Creating it..."
+              sudo docker network create my_network
+            else
+              echo "Docker network 'my_network' already exists."
+            fi
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Stop and remove existing containers
@@ -113,11 +114,14 @@ jobs:
             --network my_network \
             -e POSTGRES_DB=EventFlex.UserManagement \
             -e POSTGRES_USER=billy \
-            -e POSTGRES_PASSWORD=qazwsx1@3 \
+            -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -v postgres-data:/var/lib/postgresql/data \
             -p 5432:5432 postgres:17
             # Wait for PostgreSQL to initialize
-            sleep 10
+            until sudo docker exec postgres pg_isready -U billy -d EventFlex.UserManagement; do
+              echo "Waiting for PostgreSQL to be ready..."
+              sleep 2
+            done
             # Run the application container
             sudo docker run -d -p 8080:8080 -p 8081:8081 --name usermanagementapi \
             --network my_network \

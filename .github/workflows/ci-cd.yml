@@ -89,6 +89,10 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ec2-user
             fi
+            # Create Docker network if it doesn't exist
+            if ! sudo docker network ls | grep -q my_network; then
+              sudo docker network create my_network
+            fi
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Stop and remove existing containers
@@ -109,7 +113,6 @@ jobs:
             # Run the application container
             sudo docker run -d -p 8080:8080 -p 8081:8081 --name usermanagementapi \
             --network my_network \
-            # --link postgres:postgres \
             -e ConnectionStrings__DefaultConnection="Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}" \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Check if the container is running

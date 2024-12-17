@@ -59,7 +59,7 @@ jobs:
         run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
 
       - name: Build Docker image
-        run: docker build -t usermanagementapi:latest --build-arg PROJECT_PATH=UserManagement.API/UserManagement.API/UserManagement.API.csproj -f ./UserManagement.API/UserManagement.API/Dockerfile .
+        run: docker build -t usermanagementapi:latest --build-arg PROJECT_PATH=UserManagement.API/UserManagement.API/UserManagement.API.csproj --build-arg CONTEXT_PATH=UserManagement.API/UserManagement.API -f ./UserManagement.API/UserManagement.API/Dockerfile .
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2

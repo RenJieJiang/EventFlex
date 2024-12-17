@@ -76,6 +76,7 @@ jobs:
         run: |
           echo "${{ secrets.AWS_EC2_KEY }}" | base64 --decode > aws_keypair.pem
           chmod 600 aws_keypair.pem
+          cat aws_keypair.pem
 
       - name: Create .ssh directory
         run: |

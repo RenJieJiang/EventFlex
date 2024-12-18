@@ -51,7 +51,7 @@ jobs:
 
       - name: Create uuid-ossp extension
         env:
-          PGPASSWORD: qazwsx1@3
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
@@ -75,8 +75,8 @@ jobs:
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ec2-3-107-24-209.ap-southeast-2.compute.amazonaws.com
-          username: ec2-user
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }} # ec2-user
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
             echo "SSH connection successful"

@@ -1,12 +1,16 @@
-name: CI/CD Pipeline
+name: UserManagement API CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'UserManagement.API/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'UserManagement.API/**'
 
 jobs:
   build:

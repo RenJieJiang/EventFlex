@@ -1,0 +1,58 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[xX]64/
+[xX]86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm].app/
+binaries/
+
+# Visual Studio files
+.vs/
+*.sln.ide
+*.user
+*.suo
+*.tmp
+
+# Rider files
+.idea/
+
+# NuGet Packages
+**/packages/*
+!**/packages/build/
+!**/packages/build/**/*
+
+# Logs
+*.log
+
+# Ignore visual studio build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.sln.ide
+*.suo
+*.userprefs
+
+# Web project files
+wwwroot/lib/
+wwwroot/css/
+wwwroot/js/
+
+# Azure files
+*.publishsettings
+*.tfignore
+
+# Database files
+*.mdf
+*.ldf
+
+# Backup files
+*~ 
+*.bak
+
+# Other files
+appsettings.Development.json
+appsettings.Production.json
+secrets.json

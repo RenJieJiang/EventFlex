@@ -26,8 +26,7 @@ namespace UserManagement.API.Tests.Controllers
         {
             // Arrange
             var tenants = new List<Tenant> { new Tenant { Id = Guid.NewGuid(), Name = "Tenant1" } };
-            _mockTenantService.Setup(service => service.GetAllTenantsAsync())
-                              .ReturnsAsync(tenants);
+            _mockTenantService.Setup(service => service.GetAllTenantsAsync()).ReturnsAsync(tenants);
 
             // Act
             var result = await _controller.GetAllTenants();

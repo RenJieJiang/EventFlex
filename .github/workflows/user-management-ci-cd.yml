@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - 'UserManagement.API/**'
+      - 'UserManagement.API.Test/**'
   pull_request:
     branches:
       - main
     paths:
       - 'UserManagement.API/**'
+      - 'UserManagement.API.Test/**'
 
 jobs:
   build:

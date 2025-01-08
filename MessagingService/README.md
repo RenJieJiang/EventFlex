@@ -61,3 +61,14 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## 自动执行上面的docker compose start.sh 
+open git bash
+cd /d/Study/MicroService/EventFlex/MessagingService
+chmod +x start.sh
+./start.sh
+
+## run Confluence Kafka command to read the events
+docker exec -it kafka /bin/bash
+cd /usr/bin
+kafka-console-consumer --topic test-topic --from-beginning --bootstrap-server localhost:9092

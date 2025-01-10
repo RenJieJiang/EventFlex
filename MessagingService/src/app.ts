@@ -22,9 +22,9 @@ const messageController = new MessageController(producer);
 app.post('/message/user-created', messageController.sendUserCreatedMessage);
 app.post('/message/user-updated', messageController.sendUserUpdatedMessage);
 app.post('/message/user-deleted', messageController.sendUserDeletedMessage);
-app.post('/message/event-created', messageController.sendEventCreatedMessage);
-app.post('/message/event-updated', messageController.sendEventUpdatedMessage);
-app.post('/message/event-deleted', messageController.sendEventDeletedMessage);
+app.post('/message/event-type-created', messageController.sendEventCreatedMessage);
+app.post('/message/event-type-updated', messageController.sendEventUpdatedMessage);
+app.post('/message/event-type-deleted', messageController.sendEventDeletedMessage);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -40,20 +40,20 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 const start = async () => {
     try {
       await producer.connect();
-      await consumer.connect();
+      // await consumer.connect();
 
-      const topics = [
-        ...Object.values(userManagementTopics),
-        ...Object.values(eventTypeTopics)
-      ];
+      // const topics = [
+      //   ...Object.values(userManagementTopics),
+      //   ...Object.values(eventTypeTopics)
+      // ];
 
-      for (const topic of topics) {
-        await consumer.subscribe(topic);
-      }
+      // for (const topic of topics) {
+      //   await consumer.subscribe(topic);
+      // }
 
-      await consumer.consume(async (message) => {
-        console.log('Received message:', message);
-      });
+      // await consumer.consume(async (message) => {
+      //   console.log('Received message:', message);
+      // });
 
       app.listen(config.port, () => {
         console.log(`Server running on port ${config.port}`);

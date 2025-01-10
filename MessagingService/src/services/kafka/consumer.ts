@@ -42,6 +42,16 @@ class KafkaConsumer {
             throw error;
         }
     }
+
+    async disconnect() {
+      try {
+          await this.consumer.disconnect();
+          console.log('Kafka consumer disconnected');
+      } catch (error) {
+          console.error('Error disconnecting Kafka consumer:', error);
+          throw error;
+      }
+  }
 }
 
 export default KafkaConsumer;

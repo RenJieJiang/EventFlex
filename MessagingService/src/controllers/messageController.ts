@@ -22,15 +22,15 @@ class MessageController {
     };
 
     public sendEventCreatedMessage = async (req: Request, res: Response): Promise<void> => {
-        await this.sendMessage(req, res, eventTypeTopics.EVENT_CREATED);
+        await this.sendMessage(req, res, eventTypeTopics.EVENT_TYPE_CREATED);
     };
 
     public sendEventUpdatedMessage = async (req: Request, res: Response): Promise<void> => {
-        await this.sendMessage(req, res, eventTypeTopics.EVENT_UPDATED);
+        await this.sendMessage(req, res, eventTypeTopics.EVENT_TYPE_UPDATED);
     }
 
     public sendEventDeletedMessage = async (req: Request, res: Response): Promise<void> => {
-        await this.sendMessage(req, res, eventTypeTopics.EVENT_DELETED);
+        await this.sendMessage(req, res, eventTypeTopics.EVENT_TYPE_DELETED);
     }
 
     private sendMessage = async (req: Request, res: Response, topic: string): Promise<void> => {

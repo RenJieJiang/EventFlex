@@ -68,7 +68,9 @@ cd /d/Study/MicroService/EventFlex/MessagingService
 chmod +x start.sh
 ./start.sh
 
-## run Confluence Kafka command to read the events
+## run Confluence Kafka command to read the events of a topic
 docker exec -it kafka /bin/bash
 cd /usr/bin
 kafka-console-consumer --topic test-topic --from-beginning --bootstrap-server localhost:9092
+## events of a consumer group
+kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group test-group

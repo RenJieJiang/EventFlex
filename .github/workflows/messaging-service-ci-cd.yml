@@ -92,7 +92,7 @@ jobs:
       - name: Run tests
         run: |
           cd MessagingService
-          npm test:ci
+          npm run test:ci
 
       # Build Docker image
       - name: Build Docker image

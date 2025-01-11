@@ -27,24 +27,24 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Set up Docker Compose to start Zookeeper and Kafka
-        run: |
-          cd MessagingService/docker
-          docker-compose up -d zookeeper kafka
-          for i in {1..10}; do
-            if echo srvr | nc localhost 2181; then
-              echo "Zookeeper is ready!"
-              break
-            fi
-            sleep 5
-          done
-          for i in {1..10}; do
-            if docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list; then
-              echo "Kafka is ready!"
-              break
-            fi
-            sleep 5
-          done
+      # - name: Set up Docker Compose to start Zookeeper and Kafka
+      #   run: |
+      #     cd MessagingService/docker
+      #     docker-compose up -d zookeeper kafka
+      #     for i in {1..10}; do
+      #       if echo srvr | nc localhost 2181; then
+      #         echo "Zookeeper is ready!"
+      #         break
+      #       fi
+      #       sleep 5
+      #     done
+      #     for i in {1..10}; do
+      #       if docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list; then
+      #         echo "Kafka is ready!"
+      #         break
+      #       fi
+      #       sleep 5
+      #     done
 
       # - name: Start Zookeeper
       #   run: |
@@ -85,8 +85,8 @@ jobs:
           npm install
 
       # Wait 60s for Kafka
-      - name: Wait for Kafka to be ready
-        run: sleep 60
+      # - name: Wait for Kafka to be ready
+      #   run: sleep 60
 
       # Check Kafka status
       # - name: Check Kafka status
@@ -143,6 +143,28 @@ jobs:
               sudo docker stop messaging-service
               sudo docker rm messaging-service
             fi
+
+            # Run Zookeeper and Kafka containers using docker-compose
+            cd MessagingService/docker
+            docker-compose up -d zookeeper kafka
+            for i in {1..10}; do
+              if echo srvr | nc localhost 2181; then
+                echo "Zookeeper is ready!"
+                break
+              fi
+              sleep 5
+            done
+            for i in {1..10}; do
+              if docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list; then
+                echo "Kafka is ready!"
+                break
+              fi
+              sleep 5
+            done
+
+            # Wait 60s for Kafka
+            sleep 30
+
             # Run the application container
             sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
             # Run the application container using docker-compose

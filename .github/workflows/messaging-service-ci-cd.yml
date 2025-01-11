@@ -88,6 +88,11 @@ jobs:
       - name: Wait for Kafka to be ready
         run: sleep 60
 
+      # Check Kafka status
+      - name: Check Kafka status
+        run: |
+          docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list
+
       # Run tests
       - name: Run tests
         run: |

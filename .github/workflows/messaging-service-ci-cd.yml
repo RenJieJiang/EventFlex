@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Compose to start Zookeeper and Kafka
         run: |
           cd MessagingService/docker
-          docker-compose up -d zookeeper kafka
+          docker-compose up -d
           for i in {1..10}; do
             if echo srvr | nc localhost 2181; then
               echo "Zookeeper is ready!"

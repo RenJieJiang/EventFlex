@@ -37,17 +37,17 @@ services:
       timeout: 5s
       retries: 5
 
-  messaging-service:
-    build: .
-    container_name: messaging-service
-    environment:
-      - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID}
-      - KAFKA_BROKERS=${KAFKA_BROKERS}
-      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
-      - PORT=${PORT}
-    ports:
-      - "3000:3000"
-      - "3002:3002"
-    depends_on:
-      kafka:
-        condition: service_healthy
+  # messaging-service:
+  #   build: .
+  #   container_name: messaging-service
+  #   environment:
+  #     - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID}
+  #     - KAFKA_BROKERS=${KAFKA_BROKERS}
+  #     - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
+  #     - PORT=${PORT}
+  #   ports:
+  #     - "3000:3000"
+  #     - "3002:3002"
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy

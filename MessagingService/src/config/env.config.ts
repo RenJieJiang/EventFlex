@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
+const path = require('path');
 
-dotenv.config();
+// Determine the appropriate .env file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
+dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
 const config = {
     kafka: {

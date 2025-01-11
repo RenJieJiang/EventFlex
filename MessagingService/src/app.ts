@@ -39,6 +39,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const start = async () => {
     try {
+      console.log('Kafka Client ID:', process.env.KAFKA_CLIENT_ID);
+      console.log('Kafka Brokers:', process.env.KAFKA_BROKERS);
+      console.log('Kafka Group ID:', process.env.KAFKA_GROUP_ID );
+      console.log('Port:', process.env.PORT);
+
       await producer.connect();
       // await consumer.connect();
 

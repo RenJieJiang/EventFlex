@@ -145,8 +145,7 @@ jobs:
             fi
 
             # Run Zookeeper and Kafka containers using docker-compose
-            cd MessagingService/docker
-            docker-compose up -d zookeeper kafka
+            docker-compose -f ./MessagingService/docker/docker-compose.yml up -d zookeeper kafka
             for i in {1..10}; do
               if echo srvr | nc localhost 2181; then
                 echo "Zookeeper is ready!"

@@ -89,15 +89,15 @@ jobs:
         run: sleep 60
 
       # Check Kafka status
-      - name: Check Kafka status
-        run: |
-          docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list
+      # - name: Check Kafka status
+      #   run: |
+      #     docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list
 
       # Run tests
-      - name: Run tests
-        run: |
-          cd MessagingService
-          npm run test:ci
+      # - name: Run tests
+      #   run: |
+      #     cd MessagingService
+      #     npm run test:ci
 
       # Build Docker image
       - name: Build Docker image

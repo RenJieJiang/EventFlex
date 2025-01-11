@@ -13,9 +13,11 @@ describe('Kafka Integration Tests', () => {
     const testTopic = userManagementTopics.USER_CREATED;
 
     beforeAll(async () => {
+      await retry(async () => {
         await producer.connect();
         await consumer.connect();
         await consumer.subscribe(testTopic);
+    }, 5, 5000);
     });
 
     afterAll(async () => {
@@ -56,3 +58,15 @@ describe('Kafka Integration Tests', () => {
         expect(receivedMessages[0].type).toBe(testMessage.type);
     });
 });
+
+async function retry(fn: () => Promise<void>, retries: number, delay: number): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+      try {
+          await fn();
+          return;
+      } catch (error) {
+          if (i === retries - 1) throw error;
+          await new Promise(resolve => setTimeout(resolve, delay));
+      }
+  }
+}

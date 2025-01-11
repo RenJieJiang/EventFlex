@@ -136,6 +136,15 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
             fi
+            # Install Docker Compose
+            if ! command -v docker-compose &> /dev/null; then
+              sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+            # Install nc (netcat)
+            if ! command -v nc &> /dev/null; then
+              sudo dnf install -y nmap-ncat
+            fi
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
             # Stop and remove existing containers

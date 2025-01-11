@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Compose to start Zookeeper and Kafka
         run: |
           cd MessagingService/docker
-          docker-compose up -d
+          docker-compose up -d zookeeper kafka
           for i in {1..10}; do
             if echo srvr | nc localhost 2181; then
               echo "Zookeeper is ready!"
@@ -39,7 +39,7 @@ jobs:
             sleep 5
           done
           for i in {1..10}; do
-            if docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list; then
+            if docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list; then
               echo "Kafka is ready!"
               break
             fi
@@ -125,14 +125,7 @@ jobs:
               sudo dnf install docker -y
               sudo systemctl start docker
               sudo systemctl enable docker
-              sudo usermod -aG docker ec2-user
-            fi
-            # Create a new Docker network
-            if ! sudo docker network ls | grep -q my_network; then
-              echo "Docker network 'my_network' does not exist. Creating it..."
-              sudo docker network create my_network
-            else
-              echo "Docker network 'my_network' already exists."
+              sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
             fi
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
@@ -142,7 +135,10 @@ jobs:
               sudo docker rm messaging-service
             fi
             # Run the application container
-            sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+            # sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+            # Run the application container using docker-compose
+            cd MessagingService/docker
+            docker-compose up -d messaging-service
             # Check if the container is running
             if [ $(sudo docker inspect -f '{{.State.Running}}' messaging-service) != "true" ]; then
               echo "messaging-service container failed to start. Logs:"

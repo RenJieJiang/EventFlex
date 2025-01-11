@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/app.ts",
     "build": "tsc",
-    "test": "dotenv -e .env.test -- jest"
+    "test": "dotenv -e .env.test -- jest",
+    "test:ci": "dotenv -e .env.ci -- jest"
   },
   "dependencies": {
     "dotenv": "^10.0.0",

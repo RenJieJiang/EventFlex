@@ -84,15 +84,15 @@ jobs:
           cd MessagingService
           npm install
 
-      # Wait 30s for Kafka
+      # Wait 60s for Kafka
       - name: Wait for Kafka to be ready
-        run: sleep 30
+        run: sleep 60
 
       # Run tests
       - name: Run tests
         run: |
           cd MessagingService
-          npm test
+          npm test:ci
 
       # Build Docker image
       - name: Build Docker image

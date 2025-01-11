@@ -1,0 +1,146 @@
+name: Messaging Service CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MessagingService/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'MessagingService/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose to start Zookeeper and Kafka
+        run: |
+          cd MessagingService/docker
+          docker-compose up -d
+          for i in {1..10}; do
+            if echo srvr | nc localhost 2181; then
+              echo "Zookeeper is ready!"
+              break
+            fi
+            sleep 5
+          done
+          for i in {1..10}; do
+            if docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list; then
+              echo "Kafka is ready!"
+              break
+            fi
+            sleep 5
+          done
+
+      # - name: Start Zookeeper
+      #   run: |
+      #     docker run -d --name zookeeper -p 2181:2181 -e ZOOKEEPER_CLIENT_PORT=2181 -e ZOOKEEPER_TICK_TIME=2000 confluentinc/cp-zookeeper:latest
+      #     for i in {1..10}; do
+      #       if echo srvr | nc localhost 2181; then
+      #         echo "Zookeeper is ready!"
+      #         exit 0
+      #       fi
+      #       sleep 5
+      #     done
+      #     echo "Zookeeper not ready."
+      #     exit 1
+
+      # - name: Start Kafka
+      #   run: |
+      #     docker run -d --name kafka -p 9092:9092 -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT -e KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true confluentinc/cp-kafka:latest
+      #     for i in {1..10}; do
+      #       if docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list; then
+      #         echo "Kafka is ready!"
+      #         exit 0
+      #       fi
+      #       sleep 5
+      #     done
+      #     echo "Kafka not ready."
+      #     exit 1
+
+      # Set up Node
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          cd MessagingService
+          npm install
+
+      # Run tests
+      - name: Run tests
+        run: |
+          cd MessagingService
+          npm test
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          cd MessagingService
+          docker build -t messaging-service:latest .
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}    
+
+      # Push Docker image
+      - name: Push Docker image
+        run: |
+          docker tag messaging-service:latest ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+
+      # Deploy to AWS EC2
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v0.1.11
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }} # ec2-user
+          key: ${{ secrets.AWS_EC2_KEY }}
+          script: |
+            echo "SSH connection successful"
+            # Update the package index
+            sudo dnf update -y
+            # Check if Docker is installed
+            if ! command -v docker &> /dev/null; then
+              sudo dnf install docker -y
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker ec2-user
+            fi
+            # Create a new Docker network
+            if ! sudo docker network ls | grep -q my_network; then
+              echo "Docker network 'my_network' does not exist. Creating it..."
+              sudo docker network create my_network
+            else
+              echo "Docker network 'my_network' already exists."
+            fi
+            # Pull the Docker image
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+            # Stop and remove existing containers
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^messaging-service\$"; then
+              sudo docker stop messaging-service
+              sudo docker rm messaging-service
+            fi
+            # Run the application container
+            sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+            # Check if the container is running
+            if [ $(sudo docker inspect -f '{{.State.Running}}' messaging-service) != "true" ]; then
+              echo "messaging-service container failed to start. Logs:"
+              sudo docker logs messaging-service
+              exit 1
+            fi
+          debug: true  # Enable debug mode

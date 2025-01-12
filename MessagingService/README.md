@@ -62,7 +62,7 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-## 自动执行上面的docker compose start.sh: just for development                
+## 自动执行上面的docker compose start.sh: just for development                 
 open git bash
 cd /d/Study/MicroService/EventFlex/MessagingService
 chmod +x start.sh

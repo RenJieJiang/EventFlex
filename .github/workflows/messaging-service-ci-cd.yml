@@ -122,6 +122,7 @@ jobs:
       #     docker push ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
       - name: Build and push Docker image
         run: |
+          cd MessagingService
           docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest --push .
 

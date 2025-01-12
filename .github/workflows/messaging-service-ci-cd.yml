@@ -136,22 +136,46 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
             fi
-            # Install Docker Compose
-            if ! command -v docker-compose &> /dev/null; then
+
+            # Check if Docker Compose is installed
+            if command -v docker-compose &> /dev/null; then
+              echo "Docker Compose is already installed"
+              docker-compose --version
+            else
+              echo "Docker Compose is not installed, installing now"
               sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
               sudo chmod +x /usr/local/bin/docker-compose
+              docker-compose --version
             fi
+
             # Install nc (netcat)
             if ! command -v nc &> /dev/null; then
               sudo dnf install -y nmap-ncat
             fi
+
+            # Install missing Python libraries
+            sudo dnf install -y python3 python3-pip
+            sudo pip3 install cryptography
+
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+
+            # List containers before stopping
+            echo "Containers before stopping:"
+            sudo docker ps -a
+
             # Stop and remove existing containers
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^messaging-service\$"; then
               sudo docker stop messaging-service
               sudo docker rm messaging-service
             fi
+
+            # List containers after stopping
+            echo "Containers after stopping:"
+            sudo docker ps -a
+
+            # Remove unused Docker images
+            sudo docker image prune -f
 
             # Run Zookeeper and Kafka containers using docker-compose
             sudo docker-compose -f ./MessagingService/docker/docker-compose.yml up -d zookeeper kafka

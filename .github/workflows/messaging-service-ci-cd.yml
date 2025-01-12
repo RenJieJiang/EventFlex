@@ -194,7 +194,7 @@ jobs:
             # Change directory to home/ec2-user/MessagingService/docker
             cd /home/${{ secrets.AWS_EC2_USER }}/MessagingService/docker
             # Run Zookeeper and Kafka containers using docker-compose
-            sudo VAR_DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker-compose -f docker-compose.yml up -d zookeeper kafka
+            sudo -E VAR_DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker-compose -f docker-compose.yml up -d zookeeper kafka
             for i in {1..10}; do
               if echo srvr | nc localhost 2181; then
                 echo "Zookeeper is ready!"

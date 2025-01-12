@@ -187,8 +187,10 @@ jobs:
             # Remove unused Docker images
             sudo docker image prune -f
 
+            # Change directory to home
+            cd /home/${{ secrets.AWS_EC2_USER }}
             # Run Zookeeper and Kafka containers using docker-compose
-            sudo docker-compose -f /home/${{ secrets.AWS_EC2_USER }}/docker-compose.yml up -d zookeeper kafka
+            sudo docker-compose -f docker-compose.yml up -d zookeeper kafka
             for i in {1..10}; do
               if echo srvr | nc localhost 2181; then
                 echo "Zookeeper is ready!"

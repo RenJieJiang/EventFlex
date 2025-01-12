@@ -211,10 +211,10 @@ jobs:
             sleep 30
 
             # Run the application container
-            sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
+            # sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest
             # Run the application container using docker-compose
             # cd MessagingService/docker
-            # docker-compose up -d messaging-service
+            sudo docker-compose -f docker-compose.yml up -d messaging-service
             # Check if the container is running
             if [ $(sudo docker inspect -f '{{.State.Running}}' messaging-service) != "true" ]; then
               echo "messaging-service container failed to start. Logs:"

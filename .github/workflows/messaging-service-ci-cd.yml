@@ -139,10 +139,6 @@ jobs:
           script: |
             echo "SSH connection successful"
 
-            # Set environment variable
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            echo "DOCKER_USERNAME is set to $DOCKER_USERNAME"
-
             # Update the package index
             sudo dnf update -y
             # Check if Docker is installed
@@ -196,7 +192,7 @@ jobs:
             # Change directory to home/ec2-user/MessagingService/docker
             cd /home/${{ secrets.AWS_EC2_USER }}/MessagingService/docker
             # Run Zookeeper and Kafka containers using docker-compose
-            sudo docker-compose -f docker-compose.yml up -d zookeeper kafka
+            sudo DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker-compose -f docker-compose.yml up -d zookeeper kafka
             for i in {1..10}; do
               if echo srvr | nc localhost 2181; then
                 echo "Zookeeper is ready!"

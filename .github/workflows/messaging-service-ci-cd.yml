@@ -221,4 +221,13 @@ jobs:
               sudo docker logs messaging-service
               exit 1
             fi
+
+            # Check network configuration
+            echo "Docker network configuration:"
+            sudo docker network inspect my_network
+            # Check container logs
+            echo "Kafka container logs:"
+            sudo docker logs kafka
+            echo "Messaging-service container logs:"
+            sudo docker logs messaging-service
           debug: true  # Enable debug mode

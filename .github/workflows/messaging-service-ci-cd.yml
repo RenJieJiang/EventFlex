@@ -132,10 +132,13 @@ jobs:
       # Deploy to AWS EC2
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@master # Use the latest version of the action
+        env: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         with:
           host: ${{ secrets.AWS_EC2_HOST }}
           username: ${{ secrets.AWS_EC2_USER }} # ec2-user
           key: ${{ secrets.AWS_EC2_KEY }}
+          envs: DOCKER_USERNAME
           script: |
             echo "SSH connection successful"
             # Update the package index

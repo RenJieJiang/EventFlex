@@ -141,6 +141,11 @@ jobs:
           envs: DOCKER_USERNAME
           script: |
             echo "SSH connection successful"
+
+            # Set environment variable
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            echo "DOCKER_USERNAME is set to $DOCKER_USERNAME"
+
             # Update the package index
             sudo dnf update -y
             # Check if Docker is installed

@@ -224,7 +224,7 @@ jobs:
             done
 
             # Wait 60s for Kafka
-            sleep 30
+            sleep 60
 
             # Run the application container
             # sudo docker run -d --name messaging-service -p 3000:3000 --network my_network ${{ secrets.DOCKER_USERNAME }}/messaging-service:latest

@@ -3,6 +3,11 @@ using EventTypeManagement.API.Data;
 using EventTypeManagement.API.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using EventTypeManagement.API.Messages;
 
 namespace EventTypeManagement.API.Controllers
 {
@@ -11,10 +16,14 @@ namespace EventTypeManagement.API.Controllers
     public class EventTypesController : ControllerBase
     {
         private readonly MongoDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public EventTypesController(MongoDbContext context)
+        public EventTypesController(MongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -46,6 +55,25 @@ namespace EventTypeManagement.API.Controllers
             eventType.Id = ObjectId.GenerateNewId().ToString();
 
             await _context.EventTypes.InsertOneAsync(eventType);
+
+            // Create the message model
+            var message = new EventTypeCreatedMessage
+            {
+                Id = eventType.Id,
+                Name = eventType.Name,
+                Description = eventType.Description,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Call the MessagingService
+            var response = await SendMessageAsync("message/event-type-created", message);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // Handle the error appropriately
+                return StatusCode((int)response.StatusCode, "Failed to notify the messaging service.");
+            }
+
             return CreatedAtAction(nameof(Get), new { id = eventType.Id }, eventType);
         }
 
@@ -74,6 +102,15 @@ namespace EventTypeManagement.API.Controllers
                 return NotFound();
             }
             return NoContent();
+        }
+
+        private async Task<HttpResponseMessage> SendMessageAsync(string endpoint, object message)
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "";
+            var url = $"{messagingServiceDomain}/{endpoint}";
+            var content = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+            return await httpClient.PostAsync(url, content);
         }
     }
 }

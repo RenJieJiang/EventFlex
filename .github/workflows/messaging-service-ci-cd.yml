@@ -130,7 +130,7 @@ jobs:
       - name: Copy docker-compose.yml to EC2
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.AWS_EC2_HOST }}
+          host: ${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           # Copy the whole MessagingService directory to the EC2 instance (it's scp-action default behavior)
@@ -141,7 +141,7 @@ jobs:
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@master # Use the latest version of the action}}
         with:
-          host: ${{ secrets.AWS_EC2_HOST }}
+          host: ${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}
           username: ${{ secrets.AWS_EC2_USER }} # ec2-user
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |

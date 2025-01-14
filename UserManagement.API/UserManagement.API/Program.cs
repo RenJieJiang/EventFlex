@@ -23,6 +23,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient(); // Register HttpClient
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

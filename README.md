@@ -1,1 +1,1 @@
-# EventFlex
+# EventFlex Microservice Project For self-study

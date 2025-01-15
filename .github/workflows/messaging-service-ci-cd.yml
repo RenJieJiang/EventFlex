@@ -27,51 +27,6 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      # - name: Set up Docker Compose to start Zookeeper and Kafka
-      #   run: |
-      #     cd MessagingService/docker
-      #     docker-compose up -d zookeeper kafka
-      #     for i in {1..10}; do
-      #       if echo srvr | nc localhost 2181; then
-      #         echo "Zookeeper is ready!"
-      #         break
-      #       fi
-      #       sleep 5
-      #     done
-      #     for i in {1..10}; do
-      #       if docker exec kafka kafka-topics --bootstrap-server kafka:9092 --list; then
-      #         echo "Kafka is ready!"
-      #         break
-      #       fi
-      #       sleep 5
-      #     done
-
-      # - name: Start Zookeeper
-      #   run: |
-      #     docker run -d --name zookeeper -p 2181:2181 -e ZOOKEEPER_CLIENT_PORT=2181 -e ZOOKEEPER_TICK_TIME=2000 confluentinc/cp-zookeeper:latest
-      #     for i in {1..10}; do
-      #       if echo srvr | nc localhost 2181; then
-      #         echo "Zookeeper is ready!"
-      #         exit 0
-      #       fi
-      #       sleep 5
-      #     done
-      #     echo "Zookeeper not ready."
-      #     exit 1
-
-      # - name: Start Kafka
-      #   run: |
-      #     docker run -d --name kafka -p 9092:9092 -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT -e KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true confluentinc/cp-kafka:latest
-      #     for i in {1..10}; do
-      #       if docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list; then
-      #         echo "Kafka is ready!"
-      #         exit 0
-      #       fi
-      #       sleep 5
-      #     done
-      #     echo "Kafka not ready."
-      #     exit 1
-
       # Set up Node
       - name: Set up Node
         uses: actions/setup-node@v3

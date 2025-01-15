@@ -72,4 +72,4 @@ The project includes a GitHub Actions workflow for deploying the service to AWS 
 
 ## License
 
-This project is licensed under the MIT License.  
+This project is licensed under the MIT License.   

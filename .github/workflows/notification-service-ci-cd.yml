@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           source: "NotificationService/.env"
-          target: "/home/${{ secrets.AWS_EC2_USER }}/.env"
+          target: "/home/${{ secrets.AWS_EC2_USER }}"
 
       - name: Install Docker on EC2
         uses: appleboy/ssh-action@master
@@ -94,6 +94,6 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
             docker stop notification-service || true
             docker rm notification-service || true
-            docker run -d -p 3000:3000 --name notification-service --env-file /home/${{ secrets.AWS_EC2_USER }}/.env ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+            docker run -d -p 3000:3000 --name notification-service --env-file /home/${{ secrets.AWS_EC2_USER }}/NotificationService/.env ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
           debug: true  # Enable debug mode
 

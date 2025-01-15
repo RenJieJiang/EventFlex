@@ -16,6 +16,8 @@ if (process.env.KAFKA_MECHANISM && process.env.KAFKA_USERNAME && process.env.KAF
   };
 }
 
+console.log('Kafka Configuration:', kafkaConfig);
+
 const kafka = new Kafka(kafkaConfig);
 
 export default kafka;

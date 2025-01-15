@@ -68,7 +68,7 @@ jobs:
           host: ${{ secrets.AWS_EC2_COMMON_APP_SERVER }}
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
-          source: ".env"
+          source: "NotificationService/.env"
           target: "/home/${{ secrets.AWS_EC2_USER }}/.env"
 
       - name: Install Docker on EC2
@@ -95,3 +95,5 @@ jobs:
             docker stop notification-service || true
             docker rm notification-service || true
             docker run -d -p 3000:3000 --name notification-service --env-file /home/${{ secrets.AWS_EC2_USER }}/.env ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+          debug: true  # Enable debug mode
+

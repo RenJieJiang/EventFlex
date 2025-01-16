@@ -4,7 +4,7 @@ import config from './env.config';
 
 const kafkaConfig: KafkaConfig = {
   clientId: config.kafka.clientId,
-  brokers: ['172.31.12.117:9092'], // Hard-coded Kafka broker IP address instead of config.kafka.brokers,
+  brokers: config.kafka.brokers,
   ssl: process.env.KAFKA_SSL === 'true',
 };
 

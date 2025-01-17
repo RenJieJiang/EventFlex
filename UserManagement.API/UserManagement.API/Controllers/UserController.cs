@@ -91,7 +91,7 @@ namespace UserManagement.API.Controllers
         {
             var httpClient = _httpClientFactory.CreateClient();
             var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "http://host.docker.internal:3000";
-            var url = $"{messagingServiceDomain}/{endpoint}";
+            var url = $"{messagingServiceDomain}:3000/{endpoint}";
             var content = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
             return await httpClient.PostAsync(url, content);
         }

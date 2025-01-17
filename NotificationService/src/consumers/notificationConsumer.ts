@@ -10,6 +10,7 @@ class NotificationConsumer {
     constructor(kafka: Kafka, groupId: string, emailService: EmailService) {
         this.consumer = kafka.consumer({ groupId });
         this.emailService = emailService;
+        console.log('Consumer Kafka:', JSON.stringify(kafka));
     }
 
     async connect() {

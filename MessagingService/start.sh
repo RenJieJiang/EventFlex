@@ -7,4 +7,4 @@ echo "Waiting for services to be ready..."
 sleep 30
 
 echo "Starting application..."
-npm run dev
+docker-compose -f docker/docker-compose.yml up -d messaging-service

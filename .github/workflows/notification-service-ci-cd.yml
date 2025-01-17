@@ -94,6 +94,6 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
             docker stop notification-service || true
             docker rm notification-service || true
-            docker run -d -p 3000:3000 --name notification-service --network my_network ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+            docker run -d -p 3003:3003 --name notification-service --network my_network ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
           debug: true  # Enable debug mode
 

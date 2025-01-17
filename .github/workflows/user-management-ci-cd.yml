@@ -133,6 +133,7 @@ jobs:
             --network my_network \
             -e ConnectionStrings__DefaultConnection="Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}" \
             -e ASPNETCORE_URLS="http://+:8080" \
+            -e MessagingService__Domain=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE_PRIVATE_DNS }} \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Check if the container is running
             if [ $(sudo docker inspect -f '{{.State.Running}}' usermanagementapi) != "true" ]; then

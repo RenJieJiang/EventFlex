@@ -9,11 +9,11 @@ console.log(`Using ${envFile} file`);
 
 const config = {
     kafka: {
-        clientId: process.env.KAFKA_CLIENT_ID || 'messaging-service',
+        clientId: process.env.KAFKA_CLIENT_ID || 'notification-service',
         brokers: (process.env.KAFKA_BROKERS || 'kafka:9092').split(','),
-        groupId: process.env.KAFKA_GROUP_ID || 'message-group',
+        groupId: process.env.KAFKA_GROUP_ID || 'notification-group',
     },
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3003
 };
 
 console.log('Loaded Configuration:', config);

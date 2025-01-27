@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text;
-using System.Threading.Tasks;
 using UserManagement.API.Models;
 using UserManagement.API.Services;
 using UserManagement.API.Messages;
+using UserManagement.API.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace UserManagement.API.Controllers
 {
@@ -16,12 +14,14 @@ namespace UserManagement.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITenantService _tenantService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
-        public UsersController(IUserService userService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public UsersController(IUserService userService,ITenantService tenantService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _userService = userService;
+            _tenantService = tenantService;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
         }
@@ -45,8 +45,27 @@ namespace UserManagement.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddUser(User user)
+        public async Task<ActionResult> AddUser(UserDto userDto)
         {
+            // Convert DTO to entity
+            var user = new User
+            {
+                UserName = userDto.UserName,
+                Email = userDto.Email,
+                PhoneNumber = userDto.PhoneNumber,
+                TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId)
+            };
+
+            // Validate TenantId
+            if (user.TenantId != null)
+            {
+                var tenant = await _tenantService.GetTenantByIdAsync(user.TenantId.Value);
+                if (tenant == null)
+                {
+                    return BadRequest("Tenant does not exist.");
+                }
+            }
+
             await _userService.AddUserAsync(user);
 
             // Create the message model
@@ -69,21 +88,51 @@ namespace UserManagement.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(Guid id, User user)
+        [HttpPut]
+        public async Task<ActionResult> UpdateUser(UserDto userDto)
         {
-            if (id != user.Id)
+            if (string.IsNullOrEmpty(userDto.Id) || userDto.Id == Guid.Empty.ToString())
             {
-                return BadRequest();
+                return BadRequest("User ID is required.");
             }
-            await _userService.UpdateUserAsync(user);
+
+            // Retrieve the existing user
+            var existingUser = await _userService.GetUserByIdAsync(Guid.Parse(userDto.Id));
+            if (existingUser == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Update the properties of the existing user
+            existingUser.UserName = userDto.UserName;
+            existingUser.Email = userDto.Email;
+            existingUser.PhoneNumber = userDto.PhoneNumber;
+            existingUser.TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId);
+
+
+            // Validate TenantId
+            if (existingUser.TenantId != null)
+            {
+                var tenant = await _tenantService.GetTenantByIdAsync(existingUser.TenantId.Value);
+                if (tenant == null)
+                {
+                    return BadRequest("Tenant does not exist.");
+                }
+            }
+
+            await _userService.UpdateUserAsync(existingUser);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUser(Guid id)
+        public async Task<ActionResult> DeleteUser(string id)
         {
-            await _userService.DeleteUserAsync(id);
+            if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+            {
+                return BadRequest("User ID is required.");
+            }
+
+            await _userService.DeleteUserAsync(Guid.Parse(id));
             return NoContent();
         }
 
@@ -91,7 +140,8 @@ namespace UserManagement.API.Controllers
         {
             var httpClient = _httpClientFactory.CreateClient();
             var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "http://host.docker.internal";
-            var url = $"http://{messagingServiceDomain}:3000/{endpoint}";
+            var messagingServicePort = _configuration["MessagingService:Port"] ?? "3000";
+            var url = $"http://{messagingServiceDomain}:{messagingServicePort}/{endpoint}";
             var content = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
             return await httpClient.PostAsync(url, content);
         }

@@ -19,6 +19,12 @@ namespace UserManagement.API.Data
             modelBuilder.Entity<IdentityRole<Guid>>().Property(r => r.Id).HasDefaultValueSql("uuid_generate_v4()");
             modelBuilder.Entity<Tenant>().Property(t => t.Id).HasDefaultValueSql("uuid_generate_v4()");
 
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Tenant)
+                .WithMany()
+                .HasForeignKey(u => u.TenantId)
+                .IsRequired(false); // Make TenantId nullable
+
             // Seed data for Tenants
             var tenant1 = new Tenant
             {

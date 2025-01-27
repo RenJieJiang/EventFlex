@@ -42,10 +42,10 @@ namespace UserManagement.API.Data
             var user1 = new User
             {
                 Id = Guid.NewGuid(),
-                UserName = "user1@example.com",
-                NormalizedUserName = "USER1@EXAMPLE.COM",
-                Email = "user1@example.com",
-                NormalizedEmail = "USER1@EXAMPLE.COM",
+                UserName = "admin",
+                NormalizedUserName = "ADMIN",
+                Email = "jiangrj1@hotmail.com",
+                NormalizedEmail = "JIANGRJ1@HOTMAIL.COM",
                 EmailConfirmed = true,
                 PasswordHash = hasher.HashPassword(null, "Password123!"),
                 SecurityStamp = string.Empty,

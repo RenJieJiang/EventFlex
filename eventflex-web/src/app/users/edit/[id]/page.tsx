@@ -9,9 +9,7 @@ interface User {
   id: string;
   userName: string;
   email: string;
-  emailConfirmed: boolean;
   phoneNumber: string | null;
-  lockoutEnabled: boolean;
 }
 
 export default function EditUserPage() {
@@ -40,7 +38,7 @@ export default function EditUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/users/${id}`, user);
+      await axios.put(`http://localhost:8080/api/users`, user);
       router.push("/users");
     } catch (error: any) {
       setError("Failed to update user");
@@ -63,6 +61,7 @@ export default function EditUserPage() {
             value={user?.userName || ""}
             onChange={(e) => setUser({ ...user, userName: e.target.value })}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            required
           />
         </div>
         <div className="mb-4">
@@ -84,28 +83,6 @@ export default function EditUserPage() {
             type="text"
             value={user?.phoneNumber || ""}
             onChange={(e) => setUser({ ...user, phoneNumber: e.target.value })}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Email Confirmed
-          </label>
-          <input
-            type="checkbox"
-            checked={user?.emailConfirmed || false}
-            onChange={(e) => setUser({ ...user, emailConfirmed: e.target.checked })}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Lockout Enabled
-          </label>
-          <input
-            type="checkbox"
-            checked={user?.lockoutEnabled || false}
-            onChange={(e) => setUser({ ...user, lockoutEnabled: e.target.checked })}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           />
         </div>

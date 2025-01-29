@@ -88,16 +88,16 @@ namespace UserManagement.API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
-        [HttpPut]
-        public async Task<ActionResult> UpdateUser(UserDto userDto)
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateUser(Guid id, UserDto userDto)
         {
-            if (string.IsNullOrEmpty(userDto.Id) || userDto.Id == Guid.Empty.ToString())
+            if (id == Guid.Empty)
             {
                 return BadRequest("User ID is required.");
             }
 
             // Retrieve the existing user
-            var existingUser = await _userService.GetUserByIdAsync(Guid.Parse(userDto.Id));
+            var existingUser = await _userService.GetUserByIdAsync(id);
             if (existingUser == null)
             {
                 return NotFound("User not found.");

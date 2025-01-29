@@ -5,5 +5,5 @@ export const userSchema = z.object({
   userName: z.string().min(1, "Name is required"),
   email: z.string().min(1,"Email is required").email("Invalid email address"),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  tenantId: z.string().optional(),
+  tenantId: z.string().nullable().optional(),
 });

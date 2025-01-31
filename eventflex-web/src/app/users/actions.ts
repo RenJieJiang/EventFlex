@@ -1,5 +1,5 @@
 "use server";
-import api from "@/lib/api";
+import { isDevelopment } from "@/lib/utils";
 import axios from "axios";
 import https from "https";
 
@@ -13,7 +13,6 @@ export interface User {
   lockoutEnabled: boolean;
 }
 
-const isDevelopment = process.env.NEXT_PUBLIC_ENV === 'development';
 console.log('isDevelopment', isDevelopment);
 
 const httpsAgent = new https.Agent({

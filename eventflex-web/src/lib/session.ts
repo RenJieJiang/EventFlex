@@ -7,14 +7,15 @@ if (!secretKey) {
 }
 const encodedKey = new TextEncoder().encode(secretKey);
 
-export async function createSession(userId: string) {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7天过期
-  const session = await encrypt({ userId, expiresAt });
+export async function createSession(token: string) {
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   const cookieStore = await cookies();
-  cookieStore.set("session", session, {
-    httpOnly: true,
-    secure: true,
+  cookieStore.set("access_token", token, {
+    httpOnly: true, // Prevents JS access
+    secure: true,   // Only for HTTPS
+    sameSite: "strict", // Prevent CSRF attacks
+    path: "/",
     expires: expiresAt,
   });
 }

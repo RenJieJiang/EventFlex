@@ -52,6 +52,7 @@ export default function LoginPage() {
               <p className="text-center text-gray-500 text-xs mt-4">
                   &copy;{new Date().getFullYear()} EventFlex. All rights reserved.
               </p>
+              {/* <div><pre>{JSON.stringify(state, null, 2)}</pre></div> */}
           </div>
       </div>
   );

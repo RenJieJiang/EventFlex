@@ -1,7 +1,7 @@
 export default function Sidebar() {
   return (
-    <div className="w-64 h-screen bg-gray-800">
-      <nav className="mt-5">
+    <div className="w-64 bg-gray-800 flex flex-col">
+      <nav className="mt-5 flex-1 overflow-y-auto">
         <div className="px-2">
           <a
             href="/dashboard"
@@ -10,13 +10,13 @@ export default function Sidebar() {
             Dashboard
           </a>
           <a
-            href="/dashboard/events"
+            href="/events"
             className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
           >
             Event Types
           </a>
           <a
-            href="/dashboard/users"
+            href="/users"
             className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
           >
             Users

@@ -25,64 +25,82 @@ namespace UserManagement.API.Data
                 .HasForeignKey(u => u.TenantId)
                 .IsRequired(false); // Make TenantId nullable
 
-            // Seed data for Tenants
-            var tenant1 = new Tenant
-            {
-                Id = Guid.NewGuid(),
-                Name = "Tenant 1",
-                Description = "Description for Tenant 1"
-            };
+            //// 添加角色种子数据
+            //modelBuilder.Entity<IdentityRole<Guid>>().HasData(
+            //    new IdentityRole<Guid>
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        Name = "Admin",
+            //        NormalizedName = "ADMIN"
+            //    },
+            //    new IdentityRole<Guid>
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        Name = "User",
+            //        NormalizedName = "USER"
+            //    }
+            //);
 
-            var tenant2 = new Tenant
-            {
-                Id = Guid.NewGuid(),
-                Name = "Tenant 2",
-                Description = "Description for Tenant 2"
-            };
+            //// Seed data for Tenants
+            //var tenant1 = new Tenant
+            //{
+            //    Id = Guid.NewGuid(),
+            //    Name = "Tenant 1",
+            //    Description = "Description for Tenant 1"
+            //};
 
-            modelBuilder.Entity<Tenant>().HasData(tenant1, tenant2);
+            //var tenant2 = new Tenant
+            //{
+            //    Id = Guid.NewGuid(),
+            //    Name = "Tenant 2",
+            //    Description = "Description for Tenant 2"
+            //};
 
-            // Seed data for Users
-            var hasher = new PasswordHasher<User>();
+            //modelBuilder.Entity<Tenant>().HasData(tenant1, tenant2);
 
-            var user1 = new User
-            {
-                Id = Guid.NewGuid(),
-                UserName = "admin",
-                NormalizedUserName = "ADMIN",
-                Email = "jiangrj1@hotmail.com",
-                NormalizedEmail = "JIANGRJ1@HOTMAIL.COM",
-                EmailConfirmed = true,
-                PasswordHash = hasher.HashPassword(null, "Password123!"),
-                SecurityStamp = string.Empty,
-                TenantId = tenant1.Id
-            };
+            //// Seed data for Users
+            //var hasher = new PasswordHasher<User>();
 
-            var user2 = new User
-            {
-                Id = Guid.NewGuid(),
-                UserName = "user2@example.com",
-                NormalizedUserName = "USER2@EXAMPLE.COM",
-                Email = "user2@example.com",
-                NormalizedEmail = "USER2@EXAMPLE.COM",
-                EmailConfirmed = true,
-                PasswordHash = hasher.HashPassword(null, "Password123!"),
-                SecurityStamp = string.Empty,
-                TenantId = tenant2.Id
-            };
+            //var user1 = new User
+            //{
+            //    Id = Guid.NewGuid(),
+            //    Name = "admin",
+            //    UserName = "jiangrj1@hotmail.com",
+            //    NormalizedUserName = "JIANGRJ1@HOTMAIL.COM",
+            //    Email = "jiangrj1@hotmail.com",
+            //    NormalizedEmail = "JIANGRJ1@HOTMAIL.COM",
+            //    EmailConfirmed = true,
+            //    PasswordHash = hasher.HashPassword(null, "Password123!"),
+            //    SecurityStamp = string.Empty,
+            //    TenantId = tenant1.Id
+            //};
 
-            modelBuilder.Entity<User>().HasData(user1, user2);
+            //var user2 = new User
+            //{
+            //    Id = Guid.NewGuid(),
+            //    Name = "user2",
+            //    UserName = "user2@example.com",
+            //    NormalizedUserName = "USER2@EXAMPLE.COM",
+            //    Email = "user2@example.com",
+            //    NormalizedEmail = "USER2@EXAMPLE.COM",
+            //    EmailConfirmed = true,
+            //    PasswordHash = hasher.HashPassword(null, "Password123!"),
+            //    SecurityStamp = string.Empty,
+            //    TenantId = tenant2.Id
+            //};
+
+            //modelBuilder.Entity<User>().HasData(user1, user2);
         }
 
-        public static void SeedData(IServiceProvider serviceProvider)
-        {
-            using (var scope = serviceProvider.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                EnsureUuidExtension(context);
-                context.Database.Migrate();
-            }
-        }
+        //public static void SeedData(IServiceProvider serviceProvider)
+        //{
+        //    using (var scope = serviceProvider.CreateScope())
+        //    {
+        //        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        //        EnsureUuidExtension(context);
+        //        context.Database.Migrate();
+        //    }
+        //}
 
         /// <summary>
         /// Ensure the uuid-ossp extension is created in the database when start the application from the visual studio

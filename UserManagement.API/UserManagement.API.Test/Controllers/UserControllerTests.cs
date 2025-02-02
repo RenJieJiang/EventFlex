@@ -7,18 +7,59 @@ using UserManagement.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using UserManagement.API.DTOs;
+using Microsoft.Extensions.Configuration;
 
 namespace UserManagement.API.Tests.Controllers
 {
     public class UserControllerTests
     {
         private readonly Mock<IUserService> _mockUserService;
+        private readonly Mock<ITenantService> _mockTenantService;
+        private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
+        private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<UserManager<User>> _mockUserManager;
+        private readonly Mock<RoleManager<IdentityRole>> _mockRoleManager;
         private readonly UsersController _controller;
 
         public UserControllerTests()
         {
             _mockUserService = new Mock<IUserService>();
-            _controller = new UsersController(_mockUserService.Object);
+            _mockTenantService = new Mock<ITenantService>();
+            _mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            _mockConfiguration = new Mock<IConfiguration>();
+
+            _mockUserManager = new Mock<UserManager<User>>(
+                Mock.Of<IUserStore<User>>(),
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<User>>(),
+                new IUserValidator<User>[0],
+                new IPasswordValidator<User>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<User>>>()
+            );
+
+            _mockRoleManager = new Mock<RoleManager<IdentityRole>>(
+                Mock.Of<IRoleStore<IdentityRole>>(),
+                new IRoleValidator<IdentityRole>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<ILogger<RoleManager<IdentityRole>>>()
+            );
+
+            _controller = new UsersController(
+                _mockUserService.Object,
+                _mockTenantService.Object,
+                _mockHttpClientFactory.Object,
+                _mockConfiguration.Object,
+                _mockUserManager.Object,
+                _mockRoleManager.Object
+            );
         }
 
         [Fact]
@@ -75,15 +116,20 @@ namespace UserManagement.API.Tests.Controllers
         public async Task AddUser_ReturnsCreatedAtAction_WithUser()
         {
             // Arrange
-            var user = new User { Id = Guid.NewGuid() };
+            var userDto = new UserDto { UserName = "testuser", Email = "test@example.com" };
+            var user = new User { Id = Guid.NewGuid(), UserName = userDto.UserName, Email = userDto.Email };
+
+            _mockUserService.Setup(service => service.AddUserAsync(It.IsAny<User>()))
+                            .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _controller.AddUser(user);
+            var result = await _controller.AddUser(userDto);
 
             // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
             var returnValue = Assert.IsType<User>(createdAtActionResult.Value);
-            Assert.Equal(user.Id, returnValue.Id);
+            Assert.Equal(userDto.UserName, returnValue.UserName);
+            Assert.Equal(userDto.Email, returnValue.Email);
         }
 
         [Fact]
@@ -91,10 +137,16 @@ namespace UserManagement.API.Tests.Controllers
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var user = new User { Id = userId };
+            var userDto = new UserDto { UserName = "updateduser", Email = "updated@example.com" };
+            var user = new User { Id = userId, UserName = userDto.UserName, Email = userDto.Email };
+
+            _mockUserService.Setup(service => service.GetUserByIdAsync(userId))
+                            .ReturnsAsync(user);
+            _mockUserService.Setup(service => service.UpdateUserAsync(It.IsAny<User>()))
+                            .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _controller.UpdateUser(userId, user);
+            var result = await _controller.UpdateUser(userId, userDto);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
@@ -105,10 +157,10 @@ namespace UserManagement.API.Tests.Controllers
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var user = new User { Id = Guid.NewGuid() };
+            var userDto = new UserDto { Id = Guid.NewGuid().ToString(), UserName = "updateduser", Email = "updated@example.com" };
 
             // Act
-            var result = await _controller.UpdateUser(userId, user);
+            var result = await _controller.UpdateUser(userId, userDto);
 
             // Assert
             Assert.IsType<BadRequestResult>(result);
@@ -120,8 +172,11 @@ namespace UserManagement.API.Tests.Controllers
             // Arrange
             var userId = Guid.NewGuid();
 
+            _mockUserService.Setup(service => service.DeleteUserAsync(userId))
+                            .Returns(Task.CompletedTask);
+
             // Act
-            var result = await _controller.DeleteUser(userId);
+            var result = await _controller.DeleteUser(userId.ToString());
 
             // Assert
             Assert.IsType<NoContentResult>(result);

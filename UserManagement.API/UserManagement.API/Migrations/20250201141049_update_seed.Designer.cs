@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using UserManagement.API.Data;
@@ -11,9 +12,11 @@ using UserManagement.API.Data;
 namespace UserManagement.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250201141049_update_seed")]
+    partial class update_seed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,6 +51,20 @@ namespace UserManagement.API.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d15b4362-ceb7-4e25-9899-8d0da9ee4afe"),
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = new Guid("3cb683d0-e63e-4052-846d-dfb8d91eab37"),
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -169,7 +186,21 @@ namespace UserManagement.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tenants", (string)null);
+                    b.ToTable("Tenants");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("3eadc2db-a92a-479b-9dbc-681809f09f14"),
+                            Description = "Description for Tenant 1",
+                            Name = "Tenant 1"
+                        },
+                        new
+                        {
+                            Id = new Guid("02e06226-a573-403e-ad08-8b8d7fb76f99"),
+                            Description = "Description for Tenant 2",
+                            Name = "Tenant 2"
+                        });
                 });
 
             modelBuilder.Entity("UserManagement.API.Models.User", b =>
@@ -245,6 +276,44 @@ namespace UserManagement.API.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b51c1111-fd0a-45be-8a7c-440c24658c9f"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "7052869c-8004-4598-8d63-7a4eba1dab8b",
+                            Email = "jiangrj1@hotmail.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            Name = "admin",
+                            NormalizedEmail = "JIANGRJ1@HOTMAIL.COM",
+                            NormalizedUserName = "JIANGRJ1@HOTMAIL.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHRJ5KhmDJv4FF8+6h9ZVYrb+nh6cht3Btk/qyoobotpsEqF4E/nuX8pMVKJ84vBNQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "",
+                            TenantId = new Guid("3eadc2db-a92a-479b-9dbc-681809f09f14"),
+                            TwoFactorEnabled = false,
+                            UserName = "jiangrj1@hotmail.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("d4611abd-882c-4171-81e7-e6589f77034b"),
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "9739c4eb-c1f8-48ff-9efc-019584594761",
+                            Email = "user2@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            Name = "user2",
+                            NormalizedEmail = "USER2@EXAMPLE.COM",
+                            NormalizedUserName = "USER2@EXAMPLE.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAECyXiLXQamEb6tcWX0ztsrKo1XC6vwYvm31zvIVfm1cpARzRm/v8XThyouXSPMsLfA==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "",
+                            TenantId = new Guid("02e06226-a573-403e-ad08-8b8d7fb76f99"),
+                            TwoFactorEnabled = false,
+                            UserName = "user2@example.com"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

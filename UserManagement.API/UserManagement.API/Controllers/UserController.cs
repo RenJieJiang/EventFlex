@@ -6,6 +6,10 @@ using UserManagement.API.Services;
 using UserManagement.API.Messages;
 using UserManagement.API.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Data;
+using UserManagement.API.Constants;
 
 namespace UserManagement.API.Controllers
 {
@@ -17,16 +21,26 @@ namespace UserManagement.API.Controllers
         private readonly ITenantService _tenantService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UsersController(IUserService userService,ITenantService tenantService, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public UsersController(IUserService userService,
+            ITenantService tenantService, 
+            IHttpClientFactory httpClientFactory, 
+            IConfiguration configuration,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _userService = userService;
             _tenantService = tenantService;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -50,10 +64,12 @@ namespace UserManagement.API.Controllers
             // Convert DTO to entity
             var user = new User
             {
-                UserName = userDto.UserName,
+                UserName = userDto.Email,
+                Name = userDto.UserName??"",
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
-                TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId)
+                TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId),
+                EmailConfirmed = true
             };
 
             // Validate TenantId
@@ -66,7 +82,11 @@ namespace UserManagement.API.Controllers
                 }
             }
 
-            await _userService.AddUserAsync(user);
+            //await _userService.AddUserAsync(user);
+            await _userManager.CreateAsync(user, userDto.Password);
+
+            // adding role to user
+            var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.User);
 
             // Create the message model
             var message = new UserCreatedMessage

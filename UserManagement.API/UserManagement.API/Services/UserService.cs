@@ -1,4 +1,5 @@
-﻿using UserManagement.API.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using UserManagement.API.Models;
 using UserManagement.API.Repositories;
 
 namespace UserManagement.API.Services
@@ -6,10 +7,12 @@ namespace UserManagement.API.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly UserManager<User> _userManager;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, UserManager<User> userManager)
         {
             _userRepository = userRepository;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
@@ -35,6 +38,16 @@ namespace UserManagement.API.Services
         public async Task DeleteUserAsync(Guid userId)
         {
             await _userRepository.DeleteUserAsync(userId);
+        }
+
+        public async Task<User?> AuthenticateAsync(string email, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, password))
+            {
+                return null;
+            }
+            return user;
         }
     }
 }

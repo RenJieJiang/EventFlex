@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using UserManagement.API.Constants;
-using UserManagement.API.Models;
+using UserManagement.Api.Constants;
+using UserManagement.Api.Models;
 
-namespace NetRefreshTokenDemo.Api.Data
+namespace UserManagement.Api.Data
 {
     public class DbSeeder
     {
@@ -17,13 +17,13 @@ namespace NetRefreshTokenDemo.Api.Data
             try
             {
                 // resolve other dependencies
-                var userManager = scope.ServiceProvider.GetService<UserManager<User>>();
-                var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole<Guid>>>();
+                var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 
                 // Check if any users exist to prevent duplicate seeding
                 if (userManager.Users.Any() == false)
                 {
-                    var user = new User
+                    var user = new ApplicationUser
                     {
                         Name = "Admin",
                         UserName = "admin@gmail.com",
@@ -36,7 +36,8 @@ namespace NetRefreshTokenDemo.Api.Data
                     if ((await roleManager.RoleExistsAsync(Roles.Admin)) == false)
                     {
                         logger.LogInformation("Admin role is creating");
-                        var roleResult = await roleManager.CreateAsync(new IdentityRole<Guid>(Roles.Admin));
+                        var roleResult = await roleManager
+                          .CreateAsync(new IdentityRole(Roles.Admin));
 
                         if (roleResult.Succeeded == false)
                         {

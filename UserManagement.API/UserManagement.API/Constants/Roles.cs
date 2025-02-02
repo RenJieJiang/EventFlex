@@ -1,4 +1,4 @@
-﻿namespace UserManagement.API.Constants
+﻿namespace UserManagement.Api.Constants
 {
     public class Roles
     {

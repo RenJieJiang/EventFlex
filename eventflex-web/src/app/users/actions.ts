@@ -1,4 +1,5 @@
-"use server";
+import api, { setupInterceptors } from "@/lib/api";
+import serverApi, { setupServerInterceptors } from "@/lib/serverApi";
 import { isDevelopment } from "@/lib/utils";
 import axios from "axios";
 import https from "https";
@@ -20,12 +21,16 @@ const httpsAgent = new https.Agent({
 });
 
 export const fetchUsers = async (): Promise<User[]> => {
-  // simulate a slow network request
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, { httpsAgent });
+  // await setupServerInterceptors();
+
+  const response = await serverApi.get(`/users`, { 
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
+    httpsAgent,
+  });
   return response.data;
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-  await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${id}`, { httpsAgent });
+  await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, { httpsAgent });
 };

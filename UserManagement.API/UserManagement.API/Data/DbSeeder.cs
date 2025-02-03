@@ -48,6 +48,20 @@ namespace UserManagement.Api.Data
                         }
                         logger.LogInformation("Admin role is created");
                     }
+                    // Create User role if it doesn't exist
+                    if ((await roleManager.RoleExistsAsync(Roles.User)) == false)
+                    {
+                        logger.LogInformation("User role is creating");
+                        var roleResult = await roleManager
+                          .CreateAsync(new IdentityRole(Roles.User));
+                        if (roleResult.Succeeded == false)
+                        {
+                            var roleErros = roleResult.Errors.Select(e => e.Description);
+                            logger.LogError($"Failed to create user role. Errors : {string.Join(",", roleErros)}");
+                            return;
+                        }
+                        logger.LogInformation("User role is created");
+                    }
 
                     // Attempt to create admin user
                     var createUserResult = await userManager

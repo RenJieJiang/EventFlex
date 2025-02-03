@@ -102,7 +102,7 @@ namespace UserManagement.Api.Controllers
         {
             try
             {
-                var user = await _userManager.FindByNameAsync(model.Username);
+                var user = await _userManager.FindByNameAsync(model.Email);
                 if (user == null)
                 {
                     return BadRequest("User with this username is not registered with us.");
@@ -156,6 +156,19 @@ namespace UserManagement.Api.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // 创建一个HTTP-only Cookie
+                Response.Cookies.Append(
+                    "access_token",
+                    token,
+                    new CookieOptions
+                    {
+                        Expires = DateTime.UtcNow.AddDays(1),
+                        HttpOnly = true,
+                        IsEssential = true,
+                        Secure = true, // 如果使用HTTPS，则应设置为true
+                        SameSite = SameSiteMode.None // 根据需要调整SameSite属性                    });
+                    });
 
                 return Ok(new TokenModel
                 {

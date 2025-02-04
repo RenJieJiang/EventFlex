@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using UserManagement.Api.Data;
-using UserManagement.Api.Models;
-using UserManagement.Api.Services;
+using UserManagement.API.Data;
+using UserManagement.API.Models;
+using UserManagement.API.Services;
 using System.Text;
-using UserManagement.Api.Data;
-using UserManagement.Api.Models;
-using UserManagement.Api.Services;
+using UserManagement.API.Data;
+using UserManagement.API.Models;
+using UserManagement.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

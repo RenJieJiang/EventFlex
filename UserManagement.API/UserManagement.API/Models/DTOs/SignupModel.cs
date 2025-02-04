@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace UserManagement.Api.Models.DTOs
+namespace UserManagement.API.Models.DTOs
 {
     public class SignupModel
     {

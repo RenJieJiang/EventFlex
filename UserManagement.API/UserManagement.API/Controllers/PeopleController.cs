@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserManagement.Api.Constants;
+using UserManagement.API.Constants;
 
-namespace UserManagement.Api.Controllers
+namespace UserManagement.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

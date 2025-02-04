@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using UserManagement.Api.Constants;
-using UserManagement.Api.Models;
-using UserManagement.Api.Models.DTOs;
-using UserManagement.Api.Services;
+using UserManagement.API.Constants;
+using UserManagement.API.Models;
+using UserManagement.API.Models.DTOs;
+using UserManagement.API.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace UserManagement.Api.Controllers
+namespace UserManagement.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -170,8 +170,12 @@ namespace UserManagement.Api.Controllers
                         SameSite = SameSiteMode.None // 根据需要调整SameSite属性                    });
                     });
 
-                return Ok(new TokenModel
+                return Ok(new LoginResponseModel
                 {
+                    Id = user.Id,
+                    UserName = user.Name,
+                    Email = user.Email ?? "",
+                    PhoneNumber = user.PhoneNumber ?? "",
                     AccessToken = token,
                     RefreshToken = refreshToken
                 });

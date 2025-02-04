@@ -1,4 +1,6 @@
-﻿namespace UserManagement.API.Models.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace UserManagement.API.Models.DTOs
 {
     public class ApplicationUserModel
     {
@@ -8,6 +10,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
+        [JsonIgnore]
         public string Password { get; set; } = string.Empty;
     }
 }

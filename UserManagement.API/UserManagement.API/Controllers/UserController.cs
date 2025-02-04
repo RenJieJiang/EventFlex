@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Data;
-using UserManagement.Api.Constants;
-using UserManagement.Api.Models;
+using UserManagement.API.Constants;
+using UserManagement.API.Models;
 using UserManagement.API.Models.DTOs;
 using UserManagement.API.Messages;
 

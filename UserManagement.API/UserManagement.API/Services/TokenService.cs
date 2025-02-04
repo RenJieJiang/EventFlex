@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace UserManagement.Api.Services
+namespace UserManagement.API.Services
 {
     public class TokenService : ITokenService
     {

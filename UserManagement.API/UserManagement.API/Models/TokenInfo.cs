@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace UserManagement.Api.Models
+namespace UserManagement.API.Models
 {
     public class TokenInfo
     {

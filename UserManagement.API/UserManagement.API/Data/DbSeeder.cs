@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using UserManagement.Api.Constants;
-using UserManagement.Api.Models;
+using UserManagement.API.Constants;
+using UserManagement.API.Models;
 
-namespace UserManagement.Api.Data
+namespace UserManagement.API.Data
 {
     public class DbSeeder
     {

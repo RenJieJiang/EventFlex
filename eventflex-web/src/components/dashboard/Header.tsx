@@ -1,35 +1,53 @@
-import { cookies } from 'next/headers';
+"use client";
+
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 // import { redirect } from 'next/navigation';
 
-export default async function Header() {
-  const cookieStore = await cookies();
-  const userName = cookieStore.get("userName")?.value;
+export default  function Header() {
+  const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
+  // const userName = cookieStore.get("userName")?.value;
 
-  // const handleLogout = () => {
-  //   cookieStore.delete("access_token");
-  //   cookieStore.delete("refresh_token");
-  //   cookieStore.delete("id");
-  //   cookieStore.delete("userName");
-  //   cookieStore.delete("email");
-  //   // redirect("/login");
-  // };
+  useEffect(() => {
+    const userName = Cookies.get("userName");
+    if (userName) {
+      setUserName(userName);
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    // Remove cookies
+    const response = await fetch('/logout', {
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      router.push("/login");
+    } else {
+      console.error("Failed to logout");
+    }
+  };
 
   return (
     <header className="bg-white shadow">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          Welcome back, {userName || "User"}
-        </p>
+        <div className="flex items-center space-x-4">
+          <p className="text-sm text-gray-500">
+            Welcome back, {userName || "User"}
+          </p>
+          {userName && (
+            <button
+              onClick={handleLogout}
+              className="text-sm text-blue-500 hover:underline"
+            >
+              Logout
+            </button>
+          )}
+        </div>
       </div>
-      {userName && (
-          <button
-            // onClick={handleLogout}
-            className="bg-red-500 text-white p-2 rounded"
-          >
-            Logout
-          </button>
-        )}
     </header>
   );
 }

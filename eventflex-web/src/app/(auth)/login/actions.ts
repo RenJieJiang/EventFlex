@@ -19,26 +19,41 @@ export async function login(prevState: any, formData: FormData) {
 
   try {
     const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
-    console.log("login url:", loginUrl);
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: false,
-    });
+
     const response = await axios.post(loginUrl, parsedResult.data, {
       httpsAgent,
       headers: { "Content-Type": "application/json" },
       withCredentials: true, // Allow sending cookies in requests
     });
-    console.log("response headers:", response.headers);
-    console.log("response cookies:", response.headers["set-cookie"]);
+
     if (response.status < 200 || response.status >= 300) {
       return { errors: { email: ["Invalid email or password"] } };
     }
+
     const setCookieHeader = response.headers["set-cookie"];
+    console.log("setCookieHeader", setCookieHeader);
     if (setCookieHeader && setCookieHeader.length > 0) {
-      (await cookies()).set("access_token", setCookieHeader[0]);
+      const cookieStore = await cookies();
+      setCookieHeader.forEach((cookieString: string) => {
+        const [cookieNameValue, ...cookieAttributes] = cookieString.split("; ");
+        const [cookieName, cookieValue] = cookieNameValue.split("=");
+        cookieStore.set(cookieName, cookieValue, {
+          path: "/",
+          secure: true,
+          httpOnly: cookieAttributes.includes("httponly"),
+          sameSite: cookieAttributes.includes("samesite=none") ? "none" : undefined,
+          expires: new Date(cookieAttributes.find(attr => attr.startsWith("expires="))?.split("=")[1] || ""),
+        });
+      });
+
+      console.log("response.data", response.data);
+
+      cookieStore.set("id", response.data.id);
+      cookieStore.set("userName", response.data.userName);
+      cookieStore.set("email", response.data.email);
     }
-    // Return the cookies and response data
-    // return { cookies: response.headers["set-cookie"], data: response.data };
+
+    return { user: response.data };
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error("Axios error:", {
@@ -63,5 +78,5 @@ export async function login(prevState: any, formData: FormData) {
     return { errors: { email: ["Invalid email or password"] } };
   }
 
-  redirect(`/dashboard`);
+  // redirect(`/dashboard`);
 }

@@ -1,36 +1,44 @@
-import api, { setupInterceptors } from "@/lib/api";
-import serverApi, { setupServerInterceptors } from "@/lib/serverApi";
+"use server";
+
+import { customFetch } from "@/lib/customFetch";
 import { isDevelopment } from "@/lib/utils";
-import axios from "axios";
-import https from "https";
+import { cookies } from "next/headers";
 
 export interface User {
   tenantId: string;
   id: string;
   userName: string;
   email: string;
-  emailConfirmed: boolean;
   phoneNumber: string | null;
-  lockoutEnabled: boolean;
+  token: string;
+  refreshToken: string;
 }
 
 console.log('isDevelopment', isDevelopment);
 
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: !isDevelopment,
-});
-
 export const fetchUsers = async (): Promise<User[]> => {
-  // await setupServerInterceptors();
-
-  const response = await serverApi.get(`/users`, { 
-    withCredentials: true,
+  const response = await customFetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+    method: "GET",
     headers: { "Content-Type": "application/json" },
-    httpsAgent,
-  });
-  return response.data;
+    credentials: "include",
+  }) as unknown as Response;
+  
+  console.log('NODE_TLS_REJECT_UNAUTHORIZED:', process.env.NODE_TLS_REJECT_UNAUTHORIZED);
+
+  if (!response.ok) {
+    throw new Error(`Error fetching users: ${response.statusText}`);
+  }
+
+  return response.json();
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-  await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, { httpsAgent });
+  const response = await customFetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  }) as unknown as Response;
+
+  if (!response.ok) {
+    throw new Error(`Error deleting user: ${response.statusText}`);
+  }
 };

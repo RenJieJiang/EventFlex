@@ -18,7 +18,7 @@ export default async function UsersPage() {
             <th className="py-2 px-4 border-b text-left">Username</th>
             <th className="py-2 px-4 border-b text-left">Email</th>
             <th className="py-2 px-4 border-b text-left">Phone Number</th>
-            <th className="py-2 px-4 border-b text-left">Lockout Enabled</th>
+            {/* <th className="py-2 px-4 border-b text-left">Lockout Enabled</th> */}
             <th className="py-2 px-4 border-b text-left">Actions</th>
           </tr>
         </thead>
@@ -30,9 +30,9 @@ export default async function UsersPage() {
               <td className="py-2 px-4 border-b">
                 {user.phoneNumber || "N/A"}
               </td>
-              <td className="py-2 px-4 border-b">
+              {/* <td className="py-2 px-4 border-b">
                 {user.lockoutEnabled ? "Yes" : "No"}
-              </td>
+              </td> */}
               <td className="py-2 px-4 border-b">
                 <EditButton userId={user.id} />
                 <DeleteButton userId={user.id} />

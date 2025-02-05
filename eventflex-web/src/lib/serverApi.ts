@@ -2,10 +2,12 @@
 import axios from "axios";
 import { cookies } from "next/headers";
 import { httpsAgent } from "@/lib/utils";
+import { redirect } from "next/navigation";
+import { clearCookiesAndRedirect } from "./clearCookiesAndRedirect";
 
 const serverApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  httpsAgent,
+  // httpsAgent,
 });
 
 const extractToken = (cookieString: string): string | null => {
@@ -24,5 +26,16 @@ serverApi.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+serverApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    console.log("Server API error:", error);
+    if (error.response && error.response.status === 401) {
+      redirect("/login");
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default serverApi;

@@ -1,9 +1,9 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { login } from './actions';
-import { useRouter } from 'next/navigation';
 
 // 定义初始状态
 const initialState = { errors: { email: [], password: [] }};
@@ -19,7 +19,17 @@ function SubmitButton() {
 }
 
 export default function LoginPage() {
+  const Router = useRouter();
   const [state, loginAction, pending] = useActionState(login, initialState);
+
+  useEffect(() => {
+      if (pending === false) {
+        // Redirect to dashboard
+        if (state.user) {
+            Router.push('/dashboard');
+        }
+      }
+  }, [pending]);
 
   return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -52,7 +62,7 @@ export default function LoginPage() {
               <p className="text-center text-gray-500 text-xs mt-4">
                   &copy;{new Date().getFullYear()} EventFlex. All rights reserved.
               </p>
-              {/* <div><pre>{JSON.stringify(state, null, 2)}</pre></div> */}
+              <div><pre>{JSON.stringify(state, null, 2)}</pre></div>
           </div>
       </div>
   );

@@ -19,6 +19,8 @@ namespace UserManagement.API.Services
             var tokenHandler = new JwtSecurityTokenHandler();
 
             // Create a symmetric security key using the secret key from the configuration.
+            // set by dotnet user-secrets init
+            // get by dotnet user-secrets list: 5baafb33-00eb-4c02-b314-4f650820dbc6
             var authSigningKey = new SymmetricSecurityKey
                             (Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
 

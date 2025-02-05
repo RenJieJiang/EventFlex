@@ -73,40 +73,48 @@ namespace UserManagement.API.Controllers
                 EmailConfirmed = true
             };
 
-            // Validate TenantId
-            //if (user.TenantId != null)
-            //{
-            //    var tenant = await _tenantService.GetTenantByIdAsync(user.TenantId.Value);
-            //    if (tenant == null)
-            //    {
-            //        return BadRequest("Tenant does not exist.");
-            //    }
-            //}
+            // Set initial password if none is provided
+            var password = string.IsNullOrWhiteSpace(userDto.Password) ? "Password@123" : userDto.Password;
 
-            //await _userService.AddUserAsync(user);
-            await _userManager.CreateAsync(user, userDto.Password);
+            // Create user
+            var createUserResult = await _userManager.CreateAsync(user, password);
+            if (!createUserResult.Succeeded)
+            {
+                var errors = createUserResult.Errors.Select(e => e.Description);
+                return BadRequest($"User creation failed: {string.Join(", ", errors)}");
+            }
 
-            // adding role to user
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.User);
+            // Ensure the user exists before assigning a role
+            var foundUser = await _userManager.FindByEmailAsync(user.Email);
+            if (foundUser == null)
+            {
+                return StatusCode(500, "User creation succeeded but could not retrieve the user.");
+            }
 
-            // Create the message model
+            // Assign role
+            var addUserToRoleResult = await _userManager.AddToRoleAsync(foundUser, Roles.User);
+            if (!addUserToRoleResult.Succeeded)
+            {
+                var errors = addUserToRoleResult.Errors.Select(e => e.Description);
+                return BadRequest($"Failed to assign role: {string.Join(", ", errors)}");
+            }
+
+            // Notify messaging service
             var message = new UserCreatedMessage
             {
-                Id = user.Id.ToString(),
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
+                Id = foundUser.Id.ToString(),
+                UserName = foundUser.UserName,
+                Email = foundUser.Email,
+                PhoneNumber = foundUser.PhoneNumber,
                 CreatedAt = DateTime.UtcNow
             };
-            // Call the MessagingService
             var response = await SendMessageAsync("message/user-created", message);
             if (!response.IsSuccessStatusCode)
             {
-                // Handle the error appropriately
                 return StatusCode((int)response.StatusCode, "Failed to notify the messaging service.");
             }
 
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, foundUser);
         }
 
         [HttpPut("{id}")]

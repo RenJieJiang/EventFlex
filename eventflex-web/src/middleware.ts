@@ -11,10 +11,10 @@ export default async function middleware(req: NextRequest) {
   const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
   const cookieStore = await cookies();
 
-  console.log("Middleware: path:", path, "isProtectedRoute:", isProtectedRoute, "isPublicRoute:", isPublicRoute);
+  // console.log("Middleware: path:", path, "isProtectedRoute:", isProtectedRoute, "isPublicRoute:", isPublicRoute);
 
   const token = req.cookies.get("access_token")?.value;
-  console.log("Middleware: token:", token);
+  // console.log("Middleware: token:", token);
 
   // check if token is expired
   if (token) {

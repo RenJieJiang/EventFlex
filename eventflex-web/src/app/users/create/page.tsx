@@ -5,7 +5,7 @@ import UserForm, { UserFormData } from "../components/UserForm";
 export default function AddUserPage() {
   const handleSubmit = async (data: UserFormData) => {
     try {
-      await fetch("http://localhost:8080/api/users", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

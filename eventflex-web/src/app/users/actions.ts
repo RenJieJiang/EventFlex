@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 export interface User {
   tenantId: string;
   id: string;
+  name: string;
   userName: string;
   email: string;
   phoneNumber: string | null;
@@ -22,8 +23,6 @@ export const fetchUsers = async (): Promise<User[]> => {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
   }) as unknown as Response;
-  
-  console.log('NODE_TLS_REJECT_UNAUTHORIZED:', process.env.NODE_TLS_REJECT_UNAUTHORIZED);
 
   if (!response.ok) {
     throw new Error(`Error fetching users: ${response.statusText}`);

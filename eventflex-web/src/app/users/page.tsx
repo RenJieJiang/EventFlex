@@ -15,7 +15,7 @@ export default async function UsersPage() {
       <table className="min-w-full bg-white text-gray-900">
         <thead>
           <tr>
-            <th className="py-2 px-4 border-b text-left">Username</th>
+            <th className="py-2 px-4 border-b text-left">User Name</th>
             <th className="py-2 px-4 border-b text-left">Email</th>
             <th className="py-2 px-4 border-b text-left">Phone Number</th>
             {/* <th className="py-2 px-4 border-b text-left">Lockout Enabled</th> */}
@@ -25,7 +25,7 @@ export default async function UsersPage() {
         <tbody>
           {users.map((user) => (
             <tr key={user.id}>
-              <td className="py-2 px-4 border-b">{user.userName}</td>
+              <td className="py-2 px-4 border-b">{user.name}</td>
               <td className="py-2 px-4 border-b">{user.email}</td>
               <td className="py-2 px-4 border-b">
                 {user.phoneNumber || "N/A"}

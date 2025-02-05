@@ -22,7 +22,7 @@ export default function EditUserPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/users/${id}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`);
         setUser(response.data);
       } catch (error: any) {
         setError("Failed to fetch user");
@@ -36,7 +36,7 @@ export default function EditUserPage() {
 
   const handleSubmit = async (data: UserFormData) => {
     try {
-      await axios.put(`http://localhost:8080/api/users/${id}`, data);
+      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, data);
     } catch (error: any) {
       setError("Failed to update user");
     }

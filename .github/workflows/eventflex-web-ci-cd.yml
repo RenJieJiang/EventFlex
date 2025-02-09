@@ -33,20 +33,20 @@ jobs:
         run: npm run build
         working-directory: ./eventflex-web
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}  
 
-      - name: Build Docker image
+      - name: Build and Push Docker image
         run: |
           cd eventflex-web
           docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest --push .
-
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
 
       - name: SSH to EC2 and Deploy
         uses: appleboy/ssh-action@master
@@ -73,7 +73,7 @@ jobs:
             minikube start --driver=none
 
             # Pull Docker image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
 
             # Apply Kubernetes manifests
             kubectl apply -f ./k8s/eventflex-web/deployment.yaml

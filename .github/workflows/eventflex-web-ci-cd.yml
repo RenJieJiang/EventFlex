@@ -43,7 +43,7 @@ jobs:
         run: |
           cd eventflex-web
           docker buildx create --use
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest --push .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest

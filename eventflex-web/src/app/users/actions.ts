@@ -2,7 +2,6 @@
 
 import { customFetch } from "@/lib/customFetch";
 import { isDevelopment } from "@/lib/utils";
-import { cookies } from "next/headers";
 
 export interface User {
   tenantId: string;

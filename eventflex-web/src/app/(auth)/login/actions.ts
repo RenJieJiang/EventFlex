@@ -3,8 +3,6 @@
 import { loginSchema } from "@/lib/schemas/auth";
 import { httpsAgent } from "@/lib/utils";
 import axios from "axios";
-import { redirect } from "next/navigation";
-import * as https from "https";
 import { cookies } from "next/headers";
 
 

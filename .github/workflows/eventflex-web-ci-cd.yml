@@ -1,0 +1,75 @@
+name: EventFlex Web CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'eventflex-web/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'eventflex-web/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./eventflex-web
+
+      - name: Build
+        run: npm run build
+        working-directory: ./eventflex-web
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}  
+
+      - name: Build Docker image
+        run: |
+          cd eventflex-web
+          docker buildx create --use
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+
+      - name: SSH to EC2 and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_EC2_WEB_SERVER }} # Ensure this secret is set in your repository settings
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_KEY }}
+          script: |
+            # Install Minikube
+            curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+            sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+            # Install kubectl
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+            # Start Minikube
+            minikube start --driver=none
+
+            # Pull Docker image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+
+            # Apply Kubernetes manifests
+            kubectl apply -f ./k8s/eventflex-web/deployment.yaml
+            kubectl apply -f ./k8s/eventflex-web/service.yaml
+            kubectl apply -f ./k8s/eventflex-web/ingress.yaml

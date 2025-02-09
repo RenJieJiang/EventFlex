@@ -1,9 +1,7 @@
 "use server";
 import axios from "axios";
 import { cookies } from "next/headers";
-import { httpsAgent } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { clearCookiesAndRedirect } from "./clearCookiesAndRedirect";
 
 const serverApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,

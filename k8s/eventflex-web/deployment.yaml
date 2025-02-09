@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventflex-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventflex-web
+  template:
+    metadata:
+      labels:
+        app: eventflex-web
+    spec:
+      containers:
+      - name: eventflex-web
+        image: eventflex-web:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"

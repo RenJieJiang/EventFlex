@@ -25,7 +25,7 @@ export default function EditUserPage() {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`);
         setUser(response.data);
       } catch (error: any) {
-        setError("Failed to fetch user");
+        setError("Failed to fetch user with error: " + error.message);
       } finally {
         setLoading(false);
       }

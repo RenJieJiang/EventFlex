@@ -70,9 +70,11 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            # Create docker group
-            sudo groupadd docker
-            
+            # Create docker group if it doesn't exist
+            if ! getent group docker > /dev/null; then
+              sudo groupadd docker
+            fi
+
             # Add user to docker group
             sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
 
@@ -95,6 +97,9 @@ jobs:
 
             # Start Minikube
             minikube start --driver=none
+
+            # Verify Minikube is running
+            minikube status
 
             # Pull Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest

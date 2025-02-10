@@ -122,7 +122,7 @@ jobs:
             if ! command -v cri-dockerd &> /dev/null; then
               echo "cri-dockerd not found, installing..."
               # 下载适合你系统的最新版本的 cri-dockerd
-              VERSION="v0.3.4" # 确保使用最新的稳定版本号
+              VERSION="v0.3.16" # 确保使用最新的稳定版本号
               curl -LO https://github.com/Mirantis/cri-dockerd/releases/download/${VERSION}/cri-dockerd-${VERSION}.amd64.tgz
               tar -xvf cri-dockerd-${VERSION}.amd64.tgz
               sudo mv cri-dockerd /usr/local/bin/

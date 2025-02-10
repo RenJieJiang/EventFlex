@@ -71,20 +71,34 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
-            # 安装 Docker 和其他依赖
+            # Install Docker
             sudo yum update -y
             sudo yum install -y docker iptables conntrack-tools
             sudo systemctl start docker
             sudo systemctl enable docker
-      
-            # 创建 docker 组并将当前用户添加进去
+
+            # Create docker group if it doesn't exist
             if ! getent group docker > /dev/null; then
               sudo groupadd docker
             fi
+
+            # Add user to docker group
             sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
-      
-            # 安装 crictl
+
+            # Install iptables
+            sudo yum install -y iptables
+
+            # Install conntrack if not already installed
+            if ! command -v conntrack &> /dev/null; then
+              echo "conntrack not found, installing..."
+              sudo yum install -y conntrack
+            else
+              echo "conntrack is already installed."
+            fi
+
+            # Install crictl if not already installed
             if ! command -v crictl &> /dev/null; then
+              echo "crictl not found, installing..."
               VERSION="v1.22.0"
               curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
               sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
@@ -92,9 +106,9 @@ jobs:
             else
               echo "crictl is already installed."
             fi
-      
-            # 安装 kubeadm, kubelet, kubectl
-            sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+
+            # Install kubeadm, kubelet, and kubectl
+            cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
             [kubernetes]
             name=Kubernetes
             baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
@@ -103,27 +117,28 @@ jobs:
             repo_gpgcheck=1
             gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
             EOF
+
             sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-            sudo yum versionlock kubelet kubeadm kubectl
-      
-            # 初始化 Kubernetes 集群
+            sudo systemctl enable --now kubelet
+
+            # Initialize Kubernetes cluster
             sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-      
-            # 设置 kubeconfig
+
+            # Set up kubeconfig for the ec2-user
             mkdir -p $HOME/.kube
             sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
             sudo chown $(id -u):$(id -g) $HOME/.kube/config
-      
-            # 安装网络插件 (Flannel)
+
+            # Install a pod network add-on (Flannel)
             kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-      
-            # 允许在 master 上调度 Pods
+
+            # Allow scheduling pods on the master node (optional)
             kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-      
-            # 拉取 Docker 镜像
+
+            # Pull Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
-      
-            # 应用 Kubernetes 清单文件
+
+            # Apply Kubernetes manifests
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/deployment.yaml
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/service.yaml
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/ingress.yaml

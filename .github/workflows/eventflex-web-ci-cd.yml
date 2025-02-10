@@ -67,49 +67,24 @@ jobs:
       - name: SSH to EC2 and Deploy
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AWS_EC2_WEB_SERVER }} # Ensure this secret is set in your repository settings
+          host: ${{ secrets.AWS_EC2_WEB_SERVER }}
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
-            # Install Docker
+            # 安装 Docker 和其他依赖
             sudo yum update -y
-
-            # Install Docker if not already installed
-            if ! command -v docker &> /dev/null; then
-              echo "Docker not found, installing..."
-              sudo yum update -y
-              sudo yum install -y docker
-              sudo systemctl start docker
-              sudo systemctl enable docker
-
-              # Create docker group if it doesn't exist and add user to docker group
-              if ! getent group docker > /dev/null; then
-                sudo groupadd docker
-              fi
-              sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
-            else
-              echo "Docker is already installed."
+            sudo yum install -y docker iptables conntrack-tools
+            sudo systemctl start docker
+            sudo systemctl enable docker
+      
+            # 创建 docker 组并将当前用户添加进去
+            if ! getent group docker > /dev/null; then
+              sudo groupadd docker
             fi
-
-            # Check if iptables is installed
-            if ! rpm -q iptables > /dev/null 2>&1; then
-              echo "iptables not found, installing..."
-              sudo yum install -y iptables
-            else
-              echo "iptables is already installed."
-            fi
-
-            # Install conntrack if not already installed
-            if ! command -v conntrack &> /dev/null; then
-              echo "conntrack not found, installing..."
-              sudo yum install -y conntrack
-            else
-              echo "conntrack is already installed."
-            fi
-
-            # Install crictl if not already installed
+            sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
+      
+            # 安装 crictl
             if ! command -v crictl &> /dev/null; then
-              echo "crictl not found, installing..."
               VERSION="v1.22.0"
               curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
               sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
@@ -117,68 +92,38 @@ jobs:
             else
               echo "crictl is already installed."
             fi
-
-            # Install cri-dockerd if not already installed
-            if ! command -v cri-dockerd &> /dev/null; then
-              echo "cri-dockerd not found, installing..."
-              curl -L "https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.16/cri-dockerd-0.3.16.amd64.tgz" --output cri-dockerd.tgz
-              tar -xvf cri-dockerd.tgz
-              sudo mv cri-dockerd /usr/local/bin/
-              rm cri-dockerd.tgz
-
-              # 确保 cri-dockerd 可执行
-              sudo chmod +x /usr/local/bin/cri-dockerd
-            else
-              echo "cri-dockerd is already installed."
-            fi
-
-            # Ensure /usr/sbin is in PATH
-            export PATH=$PATH:/usr/sbin
-
-            # Check if iptables is in PATH
-            if ! command -v iptables &> /dev/null; then
-              echo "iptables could not be found"
-              exit 1
-            fi
-
-            # Check disk space
-            df -h
-
-            # Install Minikube if not already installed
-            if ! command -v minikube &> /dev/null; then
-              echo "Minikube not found, installing..."
-              curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-              sudo install minikube-linux-amd64 /usr/local/bin/minikube
-            else
-              echo "Minikube is already installed."
-            fi
-
-            # Install kubectl if not already installed
-            if ! command -v kubectl &> /dev/null; then
-              echo "kubectl not found, installing..."
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-            else
-              echo "kubectl is already installed."
-            fi
-
-            # Restart Docker service
-            sudo systemctl restart docker
-
-            # Start Minikube if not running
-            if ! minikube status &> /dev/null; then
-              minikube start --driver=none
-            else
-              echo "Minikube is already running."
-            fi
-
-            # Verify Minikube is running
-            minikube status
-
-            # Pull Docker image
+      
+            # 安装 kubeadm, kubelet, kubectl
+            sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+            [kubernetes]
+            name=Kubernetes
+            baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+            enabled=1
+            gpgcheck=1
+            repo_gpgcheck=1
+            gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+            EOF
+            sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+            sudo yum versionlock kubelet kubeadm kubectl
+      
+            # 初始化 Kubernetes 集群
+            sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+      
+            # 设置 kubeconfig
+            mkdir -p $HOME/.kube
+            sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      
+            # 安装网络插件 (Flannel)
+            kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      
+            # 允许在 master 上调度 Pods
+            kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+      
+            # 拉取 Docker 镜像
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
-
-            # Apply Kubernetes manifests
+      
+            # 应用 Kubernetes 清单文件
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/deployment.yaml
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/service.yaml
             kubectl apply -f /home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/ingress.yaml

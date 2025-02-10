@@ -121,18 +121,12 @@ jobs:
             # Install cri-dockerd if not already installed
             if ! command -v cri-dockerd &> /dev/null; then
               echo "cri-dockerd not found, installing..."
-              sudo yum install -y golang
-              sudo yum install -y gcc git mercurial subversion
-              curl -LO https://golang.org/dl/go1.23.3.linux-amd64.tar.gz
-              sudo tar -C /usr/local -xzf go1.23.3.linux-amd64.tar.gz
-              export PATH=$PATH:/usr/local/go/bin
-              git clone https://github.com/Mirantis/cri-dockerd.git
-              cd cri-dockerd
-              mkdir bin
-              go build -o bin/cri-dockerd
-              sudo mv bin/cri-dockerd /usr/local/bin/
-              cd ..
-              rm -rf cri-dockerd
+              # 下载适合你系统的最新版本的 cri-dockerd
+              VERSION="v0.2.6" # 或者检查 https://github.com/Mirantis/cri-dockerd/releases 获取最新版本号
+              curl -LO https://github.com/Mirantis/cri-dockerd/releases/download/${VERSION}/cri-dockerd-${VERSION}-amd64.tar.gz
+              tar -xvf cri-dockerd-${VERSION}-amd64.tar.gz
+              sudo mv cri-dockerd /usr/local/bin/
+              rm cri-dockerd-${VERSION}-amd64.tar.gz
             else
               echo "cri-dockerd is already installed."
             fi

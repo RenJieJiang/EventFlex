@@ -11,6 +11,12 @@ on:
       - main
     paths:
       - 'eventflex-web/**'
+  workflow_dispatch:
+    inputs:
+      run_docker_build:
+        description: 'Run Docker Build and Push'
+        required: true
+        default: 'false'
 
 jobs:
   build:
@@ -43,6 +49,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}  
 
       - name: Build and Push Docker image
+        if: ${{ github.event.inputs.run_docker_build == 'true' }}
         run: |
           cd eventflex-web
           docker buildx create --use
@@ -90,6 +97,14 @@ jobs:
               sudo yum install -y iptables
             else
               echo "iptables is already installed."
+            fi
+
+            # Install conntrack if not already installed
+            if ! command -v conntrack &> /dev/null; then
+              echo "conntrack not found, installing..."
+              sudo yum install -y conntrack
+            else
+              echo "conntrack is already installed."
             fi
 
             # Ensure /usr/sbin is in PATH

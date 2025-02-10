@@ -64,6 +64,18 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
+            # Install Docker
+            sudo yum update -y
+            sudo yum install -y docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
+
+            # Create docker group
+            sudo groupadd docker
+            
+            # Add user to docker group
+            sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
+
             # Install iptables
             sudo yum install -y iptables
 
@@ -77,9 +89,6 @@ jobs:
             # Install kubectl
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
-            # Add user to docker group
-            sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
 
             # Restart Docker service
             sudo systemctl restart docker

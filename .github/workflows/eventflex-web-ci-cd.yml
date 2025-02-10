@@ -118,6 +118,21 @@ jobs:
               echo "crictl is already installed."
             fi
 
+            # Install cri-dockerd if not already installed
+            if ! command -v cri-dockerd &> /dev/null; then
+              echo "cri-dockerd not found, installing..."
+              sudo yum install -y golang
+              git clone https://github.com/Mirantis/cri-dockerd.git
+              cd cri-dockerd
+              mkdir bin
+              go build -o bin/cri-dockerd
+              sudo mv bin/cri-dockerd /usr/local/bin/
+              cd ..
+              rm -rf cri-dockerd
+            else
+              echo "cri-dockerd is already installed."
+            fi
+
             # Ensure /usr/sbin is in PATH
             export PATH=$PATH:/usr/sbin
 

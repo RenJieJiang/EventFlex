@@ -122,6 +122,10 @@ jobs:
             if ! command -v cri-dockerd &> /dev/null; then
               echo "cri-dockerd not found, installing..."
               sudo yum install -y golang
+              sudo yum install -y gcc git mercurial subversion
+              curl -LO https://golang.org/dl/go1.23.3.linux-amd64.tar.gz
+              sudo tar -C /usr/local -xzf go1.23.3.linux-amd64.tar.gz
+              export PATH=$PATH:/usr/local/go/bin
               git clone https://github.com/Mirantis/cri-dockerd.git
               cd cri-dockerd
               mkdir bin

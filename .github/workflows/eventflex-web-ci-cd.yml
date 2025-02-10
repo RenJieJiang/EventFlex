@@ -107,6 +107,17 @@ jobs:
               echo "conntrack is already installed."
             fi
 
+            # Install crictl if not already installed
+            if ! command -v crictl &> /dev/null; then
+              echo "crictl not found, installing..."
+              VERSION="v1.22.0"
+              curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
+              sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
+              rm -f crictl-$VERSION-linux-amd64.tar.gz
+            else
+              echo "crictl is already installed."
+            fi
+
             # Ensure /usr/sbin is in PATH
             export PATH=$PATH:/usr/sbin
 

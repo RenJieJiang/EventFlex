@@ -55,7 +55,7 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           source: "./k8s/eventflex-web/*"
-          target: "/home/${{ secrets.AWS_EC2_USER }}"    
+          target: "/home/${{ secrets.AWS_EC2_USER }}"
 
       - name: SSH to EC2 and Deploy
         uses: appleboy/ssh-action@master
@@ -64,6 +64,12 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
+            # Install iptables
+            sudo yum install -y iptables
+
+            # Check disk space
+            df -h
+
             # Install Minikube
             curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
             sudo install minikube-linux-amd64 /usr/local/bin/minikube

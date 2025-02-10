@@ -92,6 +92,15 @@ jobs:
               echo "iptables is already installed."
             fi
 
+            # Ensure /usr/sbin is in PATH
+            export PATH=$PATH:/usr/sbin
+
+            # Check if iptables is in PATH
+            if ! command -v iptables &> /dev/null; then
+              echo "iptables could not be found"
+              exit 1
+            fi
+
             # Check disk space
             df -h
 

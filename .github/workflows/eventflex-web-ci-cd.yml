@@ -121,12 +121,15 @@ jobs:
             # Install cri-dockerd if not already installed
             if ! command -v cri-dockerd &> /dev/null; then
               echo "cri-dockerd not found, installing..."
-              # 下载适合你系统的最新版本的 cri-dockerd
-              VERSION="v0.3.16" # 确保使用最新的稳定版本号
-              curl -LO https://github.com/Mirantis/cri-dockerd/releases/download/${VERSION}/cri-dockerd-${VERSION}.amd64.tgz
-              tar -xvf cri-dockerd-${VERSION}.amd64.tgz
+              VERSION="v0.3.16" # 使用最新的稳定版本号
+              DOWNLOAD_URL="https://github.com/Mirantis/cri-dockerd/releases/download/${VERSION}/cri-dockerd-${VERSION}.darwin.amd64.tgz"
+              curl -L "${DOWNLOAD_URL}" --output cri-dockerd.tgz
+              tar -xvf cri-dockerd.tgz
               sudo mv cri-dockerd /usr/local/bin/
-              rm cri-dockerd-${VERSION}.amd64.tgz
+              rm cri-dockerd.tgz
+
+              # 确保 cri-dockerd 可执行
+              sudo chmod +x /usr/local/bin/cri-dockerd
             else
               echo "cri-dockerd is already installed."
             fi

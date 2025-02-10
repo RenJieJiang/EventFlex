@@ -121,7 +121,7 @@ jobs:
             # Install cri-dockerd if not already installed
             if ! command -v cri-dockerd &> /dev/null; then
               echo "cri-dockerd not found, installing..."
-              curl -L "curl -L "https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.16/cri-dockerd-0.3.16.darwin.amd64.tgz" --output cri-dockerd.tgz
+              curl -L "https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.16/cri-dockerd-0.3.16.darwin.amd64.tgz" --output cri-dockerd.tgz
               tar -xvf cri-dockerd.tgz
               sudo mv cri-dockerd /usr/local/bin/
               rm cri-dockerd.tgz

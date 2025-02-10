@@ -55,7 +55,7 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
           source: "./k8s/eventflex-web/*"
-          target: "/home/${{ secrets.AWS_EC2_USER }}/k8s/eventflex-web/"    
+          target: "/home/${{ secrets.AWS_EC2_USER }}"    
 
       - name: SSH to EC2 and Deploy
         uses: appleboy/ssh-action@master

@@ -108,17 +108,14 @@ jobs:
             fi
 
             # Install kubeadm, kubelet, and kubectl
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubeadm"
-            chmod +x kubeadm
-            sudo mv kubeadm /usr/local/bin/
-
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubelet"
-            chmod +x kubelet
-            sudo mv kubelet /usr/local/bin/
+            sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+            curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            sudo bash -c 'cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+            deb https://apt.kubernetes.io/ kubernetes-xenial main
+            EOF'
+            sudo apt-get update
+            sudo apt-get install -y kubelet kubeadm kubectl
+            sudo apt-mark hold kubelet kubeadm kubectl
 
             sudo systemctl enable kubelet
 

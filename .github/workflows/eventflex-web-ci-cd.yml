@@ -60,7 +60,11 @@ jobs:
           echo "${{ secrets.AWS_EC2_KEY }}" > /tmp/aws_ec2_key
           chmod 600 /tmp/aws_ec2_key
           ls -l /tmp
-          cat /tmp/aws_ec2_key 
+          cat /tmp/aws_ec2_key
+
+      - name: Test SSH Connection
+        run: |
+          ssh -i /tmp/aws_ec2_key -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_EC2_WEB_SERVER }} echo "SSH connection successful"
 
       - name: Copy Docker Compose file to EC2
         uses: appleboy/scp-action@master
@@ -83,11 +87,11 @@ jobs:
             echo ${{ secrets.DOCKER_USERNAME }}
 
             # Update the package index
-            sudo yum update -y
+            sudo apt-get update -y
 
             # Check if Docker is installed
             if ! command -v docker &> /dev/null; then
-              sudo yum install docker -y
+              sudo apt-get install docker.io -y
               sudo systemctl start docker
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}

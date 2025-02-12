@@ -87,10 +87,10 @@ jobs:
           script: |
             echo "SSH connection successful"
             # Update the package index
-            sudo dnf update -y
+            sudo apt-get update -y
             # Check if Docker is installed
             if ! command -v docker &> /dev/null; then
-              sudo dnf install docker -y
+              sudo apt-get install docker.io -y
               sudo systemctl start docker
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}

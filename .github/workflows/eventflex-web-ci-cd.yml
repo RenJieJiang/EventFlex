@@ -71,7 +71,7 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.AWS_EC2_WEB_SERVER }}
-          username: ${{ secrets.AWS_UBUNTU_USER }}
+          username: ubuntu
           key: ${{ secrets.AWS_EC2_KEY }}
           # Copy the whole MessagingService directory to the EC2 instance (it's scp-action default behavior)
           source: "./eventflex-web/docker-compose.yml"

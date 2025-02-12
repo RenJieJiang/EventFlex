@@ -55,6 +55,11 @@ jobs:
           docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest --push .
 
+      - name: Verify SSH Key
+        run: |
+          echo "${{ secrets.AWS_EC2_KEY }}" > /tmp/aws_ec2_key
+          chmod 600 /tmp/aws_ec2_key   
+           
       - name: Copy Docker Compose file to EC2
         uses: appleboy/scp-action@master
         with:

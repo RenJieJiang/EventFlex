@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web:
+    image: ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+    container_name: eventflex-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production

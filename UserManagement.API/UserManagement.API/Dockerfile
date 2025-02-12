@@ -12,7 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["UserManagement.API/UserManagement.API.csproj", "UserManagement.API/"]
+COPY ["./UserManagement.API/UserManagement.API/UserManagement.API.csproj", "UserManagement.API/"]
 RUN dotnet restore "./UserManagement.API/UserManagement.API.csproj"
 COPY . .
 WORKDIR "/src/UserManagement.API"

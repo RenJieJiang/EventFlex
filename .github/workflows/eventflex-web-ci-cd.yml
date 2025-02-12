@@ -108,9 +108,6 @@ jobs:
               docker-compose --version
             fi
 
-            # Export environment variables for Docker Compose
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-
             # Pull Docker image and start the application
             cd /home/${{ secrets.AWS_UBUNTU_USER }}/eventflex-web
             sudo docker-compose pull

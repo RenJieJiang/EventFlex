@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    image: ${DOCKER_USERNAME}/eventflex-web:latest
+    image: billyjiang/eventflex-web:latest
     container_name: eventflex-web
     ports:
       - "3000:3000"

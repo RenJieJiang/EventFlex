@@ -29,9 +29,9 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U billy -d EventFlex.UserManagement"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 15
 
     steps:
       - name: Checkout code
@@ -59,8 +59,15 @@ jobs:
         run: |
           until pg_isready -h postgres -U billy -d EventFlex.UserManagement; do
             echo "Waiting for PostgreSQL to be ready..."
+            docker logs postgres
             sleep 5
           done
+
+      - name: Verify PostgreSQL connection
+        run: psql -h postgres -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
+        
+      - name: Check PostgreSQL logs
+        run: docker logs postgres
 
       - name: Create uuid-ossp extension
         env:

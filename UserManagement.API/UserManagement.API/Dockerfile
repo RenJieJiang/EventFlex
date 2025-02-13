@@ -14,7 +14,7 @@ RUN dotnet restore "./UserManagement.API/UserManagement.API.csproj"
 COPY "./UserManagement.API/UserManagement.API" "UserManagement.API/"
 
 # 安装 EF Core CLI 工具
-RUN dotnet tool install --global dotnet-ef --version 9.0.x
+RUN dotnet tool install --global dotnet-ef --version "9.0.*"
 
 WORKDIR "/src/UserManagement.API"
 RUN dotnet build "./UserManagement.API.csproj" -c $BUILD_CONFIGURATION -o /app/build

@@ -62,7 +62,11 @@ jobs:
           psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
       - name: Apply migrations
-        run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
+        run: |
+          until dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj; do
+            echo "Retrying migration..."
+            sleep 5
+          done
 
       - name: Build Docker image
         run: docker build -t usermanagementapi:latest -f ./UserManagement.API/UserManagement.API/Dockerfile .
@@ -82,7 +86,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.AWS_EC2_HOST_USER_MANAGEMENT }}
-          username: ${{ secrets.AWS_UBUNTU_USER }} # ec2-user
+          username: ${{ secrets.AWS_UBUNTU_USER }} # ubuntu for Unbuntu; ec2-user for Amazon Linux 2
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |
             echo "SSH connection successful"

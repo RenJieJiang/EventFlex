@@ -123,7 +123,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS middleware
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
 

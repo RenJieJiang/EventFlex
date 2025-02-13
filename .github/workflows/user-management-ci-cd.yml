@@ -62,36 +62,34 @@ jobs:
           echo "Inspecting the postgres service:"
           docker inspect postgres || echo "No container named postgres found."
 
-      - name: Wait for PostgreSQL to be ready with debugging
-        run: |
-          until pg_isready -h postgres -U billy -d EventFlex.UserManagement; do
-            echo "Waiting for PostgreSQL to be ready..."
+      # - name: Wait for PostgreSQL to be ready with debugging
+      #   run: |
+      #     until pg_isready -h postgres -U billy -d EventFlex.UserManagement; do
+      #       echo "Waiting for PostgreSQL to be ready..."
             
-            # 打印当前的环境变量，确保它们是正确的
-            echo "Environment variables:"
-            env | grep -i postgres || true
+      #       # 打印当前的环境变量，确保它们是正确的
+      #       echo "Environment variables:"
+      #       env | grep -i postgres || true
             
-            # 测试与PostgreSQL的网络连通性
-            echo "Testing connectivity to PostgreSQL service..."
-            nc -zv postgres 5432 || echo "Failed to connect to PostgreSQL."
+      #       # 测试与PostgreSQL的网络连通性
+      #       echo "Testing connectivity to PostgreSQL service..."
+      #       nc -zv postgres 5432 || echo "Failed to connect to PostgreSQL."
             
-            # 尝试获取并打印PostgreSQL容器的日志
-            echo "Printing PostgreSQL container logs..."
-            docker ps --filter "name=postgres" --format "{{.ID}}" | while read container_id; do
-              if [ ! -z "$container_id" ]; then
-                docker logs $container_id || echo "Failed to get logs from container $container_id"
-              else
-                echo "No container named postgres found."
-              fi
-            done
+      #       # 尝试获取并打印PostgreSQL容器的日志
+      #       echo "Printing PostgreSQL container logs..."
+      #       docker ps --filter "name=postgres" --format "{{.ID}}" | while read container_id; do
+      #         if [ ! -z "$container_id" ]; then
+      #           docker logs $container_id || echo "Failed to get logs from container $container_id"
+      #         else
+      #           echo "No container named postgres found."
+      #         fi
+      #       done
             
-            sleep 5
-          done
-        env:
-          POSTGRES_HOST: postgres
+      #       sleep 5
+      #     done
 
       - name: Verify PostgreSQL connection
-        run: psql -h postgres -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
+        run: psql -h localhost -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
 
       - name: Check PostgreSQL logs
         run: docker logs postgres
@@ -100,11 +98,11 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          psql -h postgres -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+          psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
       - name: Apply migrations
         env:
-          ConnectionStrings__DefaultConnection: "Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}"
+          ConnectionStrings__DefaultConnection: "Host=localhost;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}"
         run: |
           until dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --connection "${ConnectionStrings__DefaultConnection}"; do
             echo "Retrying migration..."

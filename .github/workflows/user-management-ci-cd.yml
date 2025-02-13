@@ -18,21 +18,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: EventFlex.UserManagement
-          POSTGRES_USER: billy
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U billy -d EventFlex.UserManagement"
-          --health-interval 30s
-          --health-timeout 10s
-          --health-retries 15
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -54,35 +39,6 @@ jobs:
 
       # - name: Run tests
       #   run: dotnet test ./UserManagement.API/UserManagement.API.Test/UserManagement.API.Test.csproj --no-build --verbosity normal
-
-      - name: Debug docker containers
-        run: |
-          echo "Listing all containers:"
-          docker ps -a
-          echo "Inspecting the postgres service:"
-          docker inspect postgres || echo "No container named postgres found."
-
-      # - name: Verify PostgreSQL connection
-      #   run: psql -h localhost -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
-
-      - name: Create uuid-ossp extension
-        env:
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
-
-      - name: Grant privileges to user
-        env:
-          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: psql -h localhost -U billy -d EventFlex.UserManagement -c "GRANT ALL PRIVILEGES ON DATABASE \"EventFlex.UserManagement\" TO billy;"
-
-      - name: Create migration
-        run: dotnet ef migrations add AddBlogCreatedTimestamp --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
-
-      - name: Apply migrations
-        env:
-          ConnectionStrings__DefaultConnection: "Host=localhost;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}"
-        run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --connection "${ConnectionStrings__DefaultConnection}"
 
       - name: Build Docker image
         run: docker build -t usermanagementapi:latest -f ./UserManagement.API/UserManagement.API/Dockerfile .
@@ -108,6 +64,7 @@ jobs:
             echo "SSH connection successful"
             # Update the package index
             sudo apt-get update -y
+
             # Check if Docker is installed
             if ! command -v docker &> /dev/null; then
               sudo apt-get install docker.io -y
@@ -115,6 +72,7 @@ jobs:
               sudo systemctl enable docker
               sudo usermod -aG docker ${{ secrets.AWS_UBUNTU_USER }}
             fi
+
             # Create a new Docker network
             if ! sudo docker network ls | grep -q my_network; then
               echo "Docker network 'my_network' does not exist. Creating it..."
@@ -122,6 +80,7 @@ jobs:
             else
               echo "Docker network 'my_network' already exists."
             fi
+
             # Pull the Docker image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             # Stop and remove existing containers
@@ -133,8 +92,10 @@ jobs:
               sudo docker stop postgres
               sudo docker rm postgres
             fi
+
             # Wait for 2s
             sleep 2
+
             # Run PostgreSQL container
             sudo docker run -d --name postgres \
             --network my_network \
@@ -143,11 +104,16 @@ jobs:
             -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -v postgres-data:/var/lib/postgresql/data \
             -p 5432:5432 postgres:17
+
             # Wait for PostgreSQL to initialize
             until sudo docker exec postgres pg_isready -U billy -d EventFlex.UserManagement; do
               echo "Waiting for PostgreSQL to be ready..."
               sleep 2
             done
+
+            # Apply migrations (if necessary, but typically this would be done by your application startup logic)
+            # sudo docker exec usermanagementapi dotnet ef database update --project /app/UserManagement.API.csproj
+
             # Run the application container
             sudo docker run -d -p 8080:8080 --name usermanagementapi \
             --network my_network \
@@ -155,6 +121,7 @@ jobs:
             -e ASPNETCORE_URLS="http://+:8080" \
             -e MessagingService__Domain=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE_PRIVATE_DNS }} \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
+            
             # Check if the container is running
             if [ $(sudo docker inspect -f '{{.State.Running}}' usermanagementapi) != "true" ]; then
               echo "usermanagementapi container failed to start. Logs:"

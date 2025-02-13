@@ -87,6 +87,8 @@ jobs:
             
             sleep 5
           done
+        env:
+          POSTGRES_HOST: postgres
 
       - name: Verify PostgreSQL connection
         run: psql -h postgres -U billy -d EventFlex.UserManagement -c 'SELECT 1;'

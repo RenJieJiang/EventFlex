@@ -71,6 +71,11 @@ jobs:
         run: |
           psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
+      - name: Grant privileges to user
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: psql -h localhost -U billy -d EventFlex.UserManagement -c "GRANT ALL PRIVILEGES ON DATABASE \"EventFlex.UserManagement\" TO billy;"
+
       - name: Create migration
         run: dotnet ef migrations add AddBlogCreatedTimestamp --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
 

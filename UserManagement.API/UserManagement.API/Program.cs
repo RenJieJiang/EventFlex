@@ -96,6 +96,23 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+// Add Migration
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        // 确保所有挂起的迁移都被应用，并创建数据库（如果它还不存在）
+        await context.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 // Seed the database
 await DbSeeder.SeedData(app);
 

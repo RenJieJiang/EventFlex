@@ -16,8 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .EnableSensitiveDataLogging() // ÏÔÊ¾Ãô¸ÐÊý¾Ý
-           .LogTo(Console.WriteLine, LogLevel.Information); // Êä³öµ½¿ØÖÆÌ¨;
+           .EnableSensitiveDataLogging() // ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+           .LogTo(Console.WriteLine, LogLevel.Information); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨;
 });
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -45,7 +45,12 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("AllowFrontend", builder =>
     {
-        builder.WithOrigins("https://localhost:3000", "http://localhost:3000", "https://localhost:8081") // 
+        builder.WithOrigins(
+              "https://localhost:3000", 
+              "http://localhost:3000", 
+              "https://localhost:8081",
+              "http://ec2-13-239-97-115.ap-southeast-2.compute.amazonaws.com",
+              "http://13.239.97.115")
                .AllowCredentials()
                .AllowAnyMethod()
                .AllowAnyHeader();
@@ -103,7 +108,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        // È·±£ËùÓÐ¹ÒÆðµÄÇ¨ÒÆ¶¼±»Ó¦ÓÃ£¬²¢´´½¨Êý¾Ý¿â£¨Èç¹ûËü»¹²»´æÔÚ£©
+        // È·ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½ï¿½ï¿½Ç¨ï¿½Æ¶ï¿½ï¿½ï¿½Ó¦ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿â£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½
         await context.Database.MigrateAsync();
     }
     catch (Exception ex)
@@ -123,7 +128,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Use CORS middleware
-app.UseCors("AllowAllOrigins");
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 

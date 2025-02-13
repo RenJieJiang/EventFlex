@@ -118,7 +118,7 @@ jobs:
             sudo docker run -d -p 8080:8080 -p 8081:8081 --name usermanagementapi \
             --network my_network \
             -e ConnectionStrings__DefaultConnection="Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}" \
-            -e ASPNETCORE_URLS="http://+:8080;https://+:8081" \
+            -e ASPNETCORE_URLS="http://+:8080" \
             -e MessagingService__Domain=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE_PRIVATE_DNS }} \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             

@@ -31,7 +31,7 @@ jobs:
           --health-cmd "pg_isready -U billy -d EventFlex.UserManagement"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     steps:
       - name: Checkout code
@@ -59,15 +59,25 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+          psql -h postgres -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until psql -h "postgres" -U "billy" -d "EventFlex.UserManagement" -c '\l'; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 5
+          done
       # - name: Apply migrations
       #   run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
 
       - name: Apply migrations
         env:
           ConnectionStrings__DefaultConnection: "Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}"
-        run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --connection "${ConnectionStrings__DefaultConnection}"
+        run: |
+          until dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --connection "${ConnectionStrings__DefaultConnection}"; do
+            echo "Retrying migration..."
+            sleep 5
+          done
 
       - name: Build Docker image
         run: docker build -t usermanagementapi:latest -f ./UserManagement.API/UserManagement.API/Dockerfile .

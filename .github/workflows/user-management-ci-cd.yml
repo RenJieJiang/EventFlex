@@ -115,9 +115,12 @@ jobs:
             # sudo docker exec usermanagementapi dotnet ef database update --project /app/UserManagement.API.csproj
 
             # Run the application container
-            sudo docker run -d -p 8080:8080 -p 8081:8081 --name usermanagementapi \
+            sudo docker run -d -p 8080:8080 --name usermanagementapi \
             --network my_network \
             -e ConnectionStrings__DefaultConnection="Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}" \
+            -e JWT__ValidIssuer="http://13.239.97.115:3000" \
+            -e JWT__ValidAudience="http://13.239.97.115:3000" \
+            -e JWT__secret="5baafb33-00eb-4c02-b314-4f650820dbc6" \
             -e ASPNETCORE_URLS="http://+:8080" \
             -e MessagingService__Domain=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE_PRIVATE_DNS }} \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest

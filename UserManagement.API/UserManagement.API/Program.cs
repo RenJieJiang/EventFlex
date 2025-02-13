@@ -15,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .EnableSensitiveDataLogging() // 显示敏感数据
+           .LogTo(Console.WriteLine, LogLevel.Information); // 输出到控制台;
 });
 builder.Services.AddScoped<ITokenService, TokenService>();
 

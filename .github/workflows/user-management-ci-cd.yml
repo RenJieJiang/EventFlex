@@ -61,12 +61,13 @@ jobs:
         run: |
           psql -h localhost -U billy -d EventFlex.UserManagement -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
 
+      # - name: Apply migrations
+      #   run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj
+
       - name: Apply migrations
-        run: |
-          until dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj; do
-            echo "Retrying migration..."
-            sleep 5
-          done
+        env:
+          ConnectionStrings__DefaultConnection: "Host=postgres;Database=EventFlex.UserManagement;Username=billy;Password=${{ secrets.DB_PASSWORD }}"
+        run: dotnet ef database update --project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --startup-project ./UserManagement.API/UserManagement.API/UserManagement.API.csproj --connection "${ConnectionStrings__DefaultConnection}"
 
       - name: Build Docker image
         run: docker build -t usermanagementapi:latest -f ./UserManagement.API/UserManagement.API/Dockerfile .

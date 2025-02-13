@@ -65,9 +65,6 @@ jobs:
       # - name: Verify PostgreSQL connection
       #   run: psql -h localhost -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
 
-      - name: Check PostgreSQL logs
-        run: docker logs postgres
-
       - name: Create uuid-ossp extension
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}

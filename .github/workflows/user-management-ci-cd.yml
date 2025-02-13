@@ -57,15 +57,24 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          until pg_isready -h postgres -U billy -d EventFlex.UserManagement; do
-            echo "Waiting for PostgreSQL to be ready..."
-            docker logs postgres
-            sleep 5
+          while true; do
+            if docker ps --format '{{.Names}}' | grep -q '^postgres$'; then
+              echo "PostgreSQL service found, waiting for it to be ready..."
+              until pg_isready -h postgres -U billy -d EventFlex.UserManagement; do
+                echo "Waiting for PostgreSQL to be ready..."
+                docker logs postgres
+                sleep 5
+              done
+              break
+            else
+              echo "PostgreSQL service not found yet..."
+              sleep 5
+            fi
           done
 
       - name: Verify PostgreSQL connection
         run: psql -h postgres -U billy -d EventFlex.UserManagement -c 'SELECT 1;'
-        
+
       - name: Check PostgreSQL logs
         run: docker logs postgres
 

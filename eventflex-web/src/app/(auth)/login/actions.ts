@@ -5,7 +5,6 @@ import { httpsAgent } from "@/lib/utils";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-
 export async function login(prevState: any, formData: FormData) {
   const parsedResult = loginSchema.safeParse(
     Object.fromEntries(formData.entries())
@@ -29,6 +28,10 @@ export async function login(prevState: any, formData: FormData) {
       withCredentials: true, // Allow sending cookies in requests
       agent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
     };
+
+    console.log("loginUrl", loginUrl);
+    console.log("fetchOptions", fetchOptions);
+    console.log("parsedResult.data", parsedResult.data);
 
     const response = await axios.post(loginUrl, parsedResult.data, fetchOptions);
 
@@ -68,21 +71,21 @@ export async function login(prevState: any, formData: FormData) {
           ? {
               status: error.response.status,
               data: error.response.data,
+              headers: error.response.headers,
             }
           : null,
         request: error.request
           ? {
               headers: error.request.headers,
               method: error.request.method,
-              url: error.request.url,
+              url: error.request.path, // Use `path` instead of `url` for the request object
             }
           : null,
+        config: error.config, // Log the Axios request configuration
       });
     } else {
       console.error("Unexpected error:", error);
     }
     return { errors: { email: ["Invalid email or password"] } };
   }
-
-  // redirect(`/dashboard`);
 }

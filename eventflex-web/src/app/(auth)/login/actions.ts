@@ -40,6 +40,9 @@ export async function login(prevState: any, formData: FormData) {
 
     const response = await axios.post(loginUrl, parsedResult.data, fetchOptions);
 
+    console.log("response status", response.status);
+    console.log("response data", response.data);
+
     if (response.status < 200 || response.status >= 300) {
       console.log("Login failed with status", response.status);
       return { errors: { email: ["Invalid email or password"] } };

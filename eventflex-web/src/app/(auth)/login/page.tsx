@@ -37,7 +37,7 @@ export default function LoginPage() {
               <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
               <form action={loginAction}>
                   <div className="mb-4">
-                      <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                      <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Your Email</label>
                       <input id="email" name="email" type="email" required 
                           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       />

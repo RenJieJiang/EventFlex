@@ -16,13 +16,21 @@ export async function login(prevState: any, formData: FormData) {
   }
 
   try {
-    const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!baseUrl) {
+      throw new Error("NEXT_PUBLIC_API_URL is not defined");
+    }
 
-    const response = await axios.post(loginUrl, parsedResult.data, {
-      httpsAgent,
+    const urlObj = new URL(baseUrl);
+    const loginUrl = `${baseUrl}/auth/login`;
+
+    const fetchOptions = {
       headers: { "Content-Type": "application/json" },
       withCredentials: true, // Allow sending cookies in requests
-    });
+      agent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
+    };
+
+    const response = await axios.post(loginUrl, parsedResult.data, fetchOptions);
 
     if (response.status < 200 || response.status >= 300) {
       return { errors: { email: ["Invalid email or password"] } };

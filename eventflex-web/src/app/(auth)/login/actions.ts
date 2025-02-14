@@ -6,11 +6,14 @@ import axios from "axios";
 import { cookies } from "next/headers";
 
 export async function login(prevState: any, formData: FormData) {
+  console.log("login function called");
+
   const parsedResult = loginSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
   if (!parsedResult.success) {
+    console.log("Validation failed", parsedResult.error.flatten().fieldErrors);
     return { errors: parsedResult.error.flatten().fieldErrors };
   }
 
@@ -19,6 +22,8 @@ export async function login(prevState: any, formData: FormData) {
     if (!baseUrl) {
       throw new Error("NEXT_PUBLIC_API_URL is not defined");
     }
+
+    console.log("baseUrl", baseUrl);
 
     const urlObj = new URL(baseUrl);
     const loginUrl = `${baseUrl}/auth/login`;
@@ -36,6 +41,7 @@ export async function login(prevState: any, formData: FormData) {
     const response = await axios.post(loginUrl, parsedResult.data, fetchOptions);
 
     if (response.status < 200 || response.status >= 300) {
+      console.log("Login failed with status", response.status);
       return { errors: { email: ["Invalid email or password"] } };
     }
 

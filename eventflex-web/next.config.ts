@@ -4,14 +4,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "https://localhost:8081/api/:path*", // Proxy requests
-      },
-    ];
-  },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination: "https://localhost:8081/api/:path*", // Proxy requests
+  //     },
+  //   ];
+  // },
   async headers() {
     return [
       {

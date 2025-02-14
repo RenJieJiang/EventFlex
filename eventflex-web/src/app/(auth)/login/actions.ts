@@ -1,7 +1,7 @@
 "use server";
 
 import { loginSchema } from "@/lib/schemas/auth";
-import { httpsAgent } from "@/lib/utils";
+// import { httpsAgent } from "@/lib/utils";
 import axios from "axios";
 import { cookies } from "next/headers";
 
@@ -25,13 +25,13 @@ export async function login(prevState: any, formData: FormData) {
 
     console.log("baseUrl", baseUrl);
 
-    const urlObj = new URL(baseUrl);
+    // const urlObj = new URL(baseUrl);
     const loginUrl = `${baseUrl}/auth/login`;
 
     const fetchOptions = {
       headers: { "Content-Type": "application/json" },
       withCredentials: true, // Allow sending cookies in requests
-      agent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
+      // agent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
     };
 
     console.log("loginUrl", loginUrl);
@@ -57,7 +57,7 @@ export async function login(prevState: any, formData: FormData) {
         const [cookieName, cookieValue] = cookieNameValue.split("=");
         cookieStore.set(cookieName, cookieValue, {
           path: "/",
-          secure: true,
+          secure: false, // Remove the secure attribute for HTTP
           httpOnly: cookieAttributes.includes("httponly"),
           sameSite: cookieAttributes.includes("samesite=none") ? "none" : undefined,
           expires: new Date(cookieAttributes.find(attr => attr.startsWith("expires="))?.split("=")[1] || ""),

@@ -1,5 +1,6 @@
 "use server";
 
+import http from "http";
 import https from "https";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,9 +19,9 @@ export const customFetch = async (url: string, options: RequestInit = {}): Promi
 
   console.log("customFetch token: ", token);
 
-  const fetchOptions: https.RequestOptions = {
+  const fetchOptions: http.RequestOptions = {
     ...options,
-    agent: isDevelopment ? httpsAgent : undefined, // Only use custom agent in development to ignore self-signed certificate issue
+    agent: urlObj.protocol === "https:" ? (isDevelopment ? httpsAgent : undefined) : undefined, // Use custom agent only for https in development
     headers: {
       ...(options.headers as Record<string, string>),
       Authorization: token ? `Bearer ${token}` : undefined, // Add token to headers
@@ -29,7 +30,9 @@ export const customFetch = async (url: string, options: RequestInit = {}): Promi
   };
 
   return new Promise((resolve, reject) => {
-    const req = https.request(urlObj, fetchOptions, (res) => {
+    const requestModule = urlObj.protocol === "https:" ? https : http;
+
+    const req = requestModule.request(urlObj, fetchOptions, (res) => {
       let data = '';
       res.on('data', (chunk) => {
         data += chunk;

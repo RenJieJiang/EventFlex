@@ -11,12 +11,6 @@ on:
       - main
     paths:
       - 'eventflex-web/**'
-  # workflow_dispatch:
-  #   inputs:
-  #     run_docker_build:
-  #       description: 'Run Docker Build and Push'
-  #       required: true
-  #       default: 'true'
 
 jobs:
   build:
@@ -52,9 +46,14 @@ jobs:
         run: |
           mkdir -p ./certs
           openssl req -x509 -newkey rsa:4096 -keyout ./certs/key.pem -out ./certs/cert.pem -days 365 -nodes -subj "/CN=localhost"
-      
+          # 设置证书文件的权限
+          chmod 600 ./certs/key.pem
+          chmod 644 ./certs/cert.pem
+
+      - name: List certs directory contents for debugging
+        run: ls -la ./certs/
+
       - name: Build and Push Docker image
-        # if: ${{ github.event.inputs.run_docker_build == 'true' }}
         run: |
           cd eventflex-web
           docker buildx create --use
@@ -66,7 +65,7 @@ jobs:
           host: ${{ secrets.AWS_EC2_WEB_SERVER }}
           username: ${{ secrets.AWS_UBUNTU_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
-          source: "./eventflex-web/docker-compose.yml,./certs/*"
+          source: "./eventflex-web/docker-compose.yml,./certs/"
           target: "/home/${{ secrets.AWS_UBUNTU_USER }}"
           debug: true
 
@@ -91,8 +90,6 @@ jobs:
               sudo systemctl start docker
               sudo systemctl enable docker
               docker_needs_restart=true
-            else
-              docker_needs_restart=false
             fi
 
             # Create docker group if it doesn't exist

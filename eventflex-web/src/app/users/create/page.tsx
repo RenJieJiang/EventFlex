@@ -1,15 +1,17 @@
 "use client";
 
+import { customFetch } from "@/lib/customFetch";
 import UserForm, { UserFormData } from "../components/UserForm";
 
 export default function AddUserPage() {
   const handleSubmit = async (data: UserFormData) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+      await customFetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(data),
       });
     } catch (error) {

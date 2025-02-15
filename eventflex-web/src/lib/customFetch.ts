@@ -12,7 +12,7 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: !isDevelopment,
 });
 
-export const customFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const customFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   const urlObj = new URL(url);
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
@@ -57,7 +57,12 @@ export const customFetch = async (url: string, options: RequestInit = {}): Promi
           redirect('/login');
         }
 
-        resolve(response);
+        // Parse the response JSON and return it as a plain object
+        response.json().then((json) => {
+          resolve(json as T);
+        }).catch((error) => {
+          reject(error);
+        });
       });
     });
 
@@ -69,7 +74,7 @@ export const customFetch = async (url: string, options: RequestInit = {}): Promi
       if (typeof options.body === 'object') {
         req.write(JSON.stringify(options.body));
       } else {
-          req.write(options.body);
+        req.write(options.body);
       }
     }
 

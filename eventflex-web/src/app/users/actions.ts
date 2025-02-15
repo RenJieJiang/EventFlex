@@ -17,26 +17,18 @@ export interface User {
 console.log('isDevelopment', isDevelopment);
 
 export const fetchUsers = async (): Promise<User[]> => {
-  const response = await customFetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+  const response = await customFetch<User[]>(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-  }) as unknown as Response;
+  });
 
-  if (!response.ok) {
-    throw new Error(`Error fetching users: ${response.statusText}`);
-  }
-
-  return response.json();
+  return response;
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
-  const response = await customFetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+  await customFetch<void>(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
     method: "DELETE",
     credentials: "include",
-  }) as unknown as Response;
-
-  if (!response.ok) {
-    throw new Error(`Error deleting user: ${response.statusText}`);
-  }
+  });
 };

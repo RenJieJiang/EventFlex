@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import UserForm, { UserFormData } from "../../components/UserForm";
+import { customFetch } from "@/lib/customFetch";
 
 interface User {
   id: string;
@@ -22,8 +23,13 @@ export default function EditUserPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`);
-        setUser(response.data);
+        const response = await customFetch<User>(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        setUser(response); 
       } catch (error: any) {
         setError("Failed to fetch user with error: " + error.message);
       } finally {

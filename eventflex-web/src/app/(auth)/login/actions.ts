@@ -31,7 +31,7 @@ export async function login(prevState: any, formData: FormData) {
     const fetchOptions = {
       headers: { "Content-Type": "application/json" },
       withCredentials: true, // Allow sending cookies in requests
-      agent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
+      httpsAgent: urlObj.protocol === "https:" ? httpsAgent : undefined, // Use custom agent only for https
     };
 
     console.log("loginUrl", loginUrl);

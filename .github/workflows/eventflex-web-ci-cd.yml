@@ -53,6 +53,11 @@ jobs:
       - name: List certs directory contents for debugging
         run: ls -la ./certs/
 
+      - name: Verify permissions on certs files
+        run: |
+          stat ./certs/key.pem
+          stat ./certs/cert.pem
+
       - name: Build and Push Docker image
         run: |
           cd eventflex-web

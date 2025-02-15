@@ -7,8 +7,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://usermanagementapi:8080/api
+    volumes:
+      # 将宿主机上的证书目录挂载到容器内的/app/certs
+      - /home/ubuntu/certs:/app/certs
+      - ./eventflex-web:/app
+    command: npm run dev -- --experimental-https --turbopack
     networks:
       - my_network
 

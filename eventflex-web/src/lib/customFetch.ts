@@ -38,6 +38,12 @@ export const customFetch = async <T>(url: string, options: RequestInit = {}): Pr
         data += chunk;
       });
       res.on('end', () => {
+        // Handle empty responses
+        if (res.statusCode === 204) {
+          resolve({} as T);
+          return;
+        }
+
         const response = new Response(data, {
           status: res.statusCode || 200,
           statusText: res.statusMessage,

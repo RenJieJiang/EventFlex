@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams } from "next/navigation";
-import UserForm, { UserFormData } from "../../components/UserForm";
 import { customFetch } from "@/lib/customFetch";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import UserForm, { UserFormData } from "../../components/UserForm";
 
 interface User {
   id: string;
@@ -42,7 +41,12 @@ export default function EditUserPage() {
 
   const handleSubmit = async (data: UserFormData) => {
     try {
-      await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, data);
+      await customFetch<User>(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
     } catch (error: any) {
       setError("Failed to update user");
     }

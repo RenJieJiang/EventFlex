@@ -15,9 +15,13 @@ COPY . .
 # Install ts-node globally
 # RUN npm install -g ts-node
 
+# Build the TypeScript code
+RUN npm run build
+
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Command to run the application
 # CMD ["ts-node", "src/app.ts"]
-CMD ["node", "dist/app.js"]
+# CMD ["node", "dist/app.js"]
+CMD ["npm", "start"]

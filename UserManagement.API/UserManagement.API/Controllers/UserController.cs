@@ -66,7 +66,7 @@ namespace UserManagement.API.Controllers
             var user = new ApplicationUser
             {
                 UserName = userDto.Email,
-                Name = userDto.UserName ?? "",
+                Name = userDto.Name ?? "",
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 //TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId),
@@ -133,7 +133,8 @@ namespace UserManagement.API.Controllers
             }
 
             // Update the properties of the existing user
-            existingUser.UserName = userDto.UserName;
+            existingUser.UserName = userDto.Email;
+            existingUser.Name = userDto.Name;
             existingUser.Email = userDto.Email;
             existingUser.PhoneNumber = userDto.PhoneNumber;
             //existingUser.TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId);

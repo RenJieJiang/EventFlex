@@ -38,11 +38,11 @@ export default function UserForm({ initialData, onSubmit }: UserFormProps) {
         <label className="block text-gray-700">Name</label>
         <input
           type="text"
-          {...register("userName")}
+          {...register("name")}
           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
         />
-        {errors.userName && (
-          <p className="text-red-500 text-sm">{errors.userName.message}</p>
+        {errors.name && (
+          <p className="text-red-500 text-sm">{errors.name.message}</p>
         )}
       </div>
       <div>

@@ -122,7 +122,7 @@ jobs:
             -e JWT__ValidAudience="http://13.239.97.115:3000" \
             -e JWT__secret="5baafb33-00eb-4c02-b314-4f650820dbc6" \
             -e ASPNETCORE_URLS="http://+:8080" \
-            -e MessagingService__Domain=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE_PRIVATE_DNS }} \
+            -e MessagingService__Domain=${{ secrets.DOCKER_MESSAGING_SERVICE_NAME }} \
             ${{ secrets.DOCKER_USERNAME }}/usermanagementapi:latest
             
             # Check if the container is running

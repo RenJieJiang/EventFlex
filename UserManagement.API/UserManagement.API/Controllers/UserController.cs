@@ -175,8 +175,8 @@ namespace UserManagement.API.Controllers
         private async Task<HttpResponseMessage> SendMessageAsync(string endpoint, object message)
         {
             var httpClient = _httpClientFactory.CreateClient();
-            var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "http://host.docker.internal";
-            var messagingServicePort = _configuration["MessagingService:Port"] ?? "3000";
+            var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "messaging-service";
+            var messagingServicePort = _configuration["MessagingService:Port"] ?? "3002";
             var url = $"http://{messagingServiceDomain}:{messagingServicePort}/{endpoint}";
             var content = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
             return await httpClient.PostAsync(url, content);

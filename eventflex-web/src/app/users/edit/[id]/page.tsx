@@ -8,7 +8,7 @@ import { customFetch } from "@/lib/customFetch";
 
 interface User {
   id: string;
-  userName: string;
+  name: string;
   email: string;
   phoneNumber: string;
   tenantId?: string;

@@ -10,7 +10,7 @@ export default function Sidebar() {
             Dashboard
           </a>
           <a
-            href="/events"
+            href="/eventtypes"
             className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
           >
             Event Types

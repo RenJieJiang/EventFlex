@@ -2,6 +2,7 @@
 
 import { eventTypeSchema } from "@/lib/schemas/eventType";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,6 +25,7 @@ export default function EventTypeForm({
     resolver: zodResolver(eventTypeSchema),
     defaultValues: initialData,
   });
+  const router = useRouter();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

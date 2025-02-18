@@ -92,4 +92,19 @@ jobs:
 
               echo "MongoDB container is up and running."
             fi
+
+            # Check if the event_type_db database and event_types collection exist, and insert a record if they do not
+            sudo docker exec mongo mongo --eval '
+            db = db.getSiblingDB("event_type_db");
+            if (db.getCollectionNames().indexOf("event_types") < 0) {
+              db.createCollection("event_types");
+              db.event_types.insertOne({
+                "_id": ObjectId("676427e7ba57f1c2c5af93f4"),
+                "Name": "PropertyInspect",
+                "Description": "Property Inspect"
+              });
+              print("Database and collection created, and record inserted.");
+            } else {
+              print("Database and collection already exist.");
+            }'
           debug: true  # Enable debug mode

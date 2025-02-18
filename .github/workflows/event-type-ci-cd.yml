@@ -1,0 +1,84 @@
+name: EventTypeManagement API MongoDB Setup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/event-type-ci-cd.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/event-type-ci-cd.yml'
+  workflow_dispatch:
+
+jobs:
+  setup-mongo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.AWS_EC2_HOST_EVENT_TYPE }}
+          username: ${{ secrets.AWS_UBUNTU_USER }} # ubuntu for Unbuntu; ec2-user for Amazon Linux 2
+          key: ${{ secrets.AWS_EC2_KEY }}
+          script: |
+            echo "SSH connection successful"
+            # Update the package index
+            sudo apt-get update -y
+
+            # Check if Docker is installed
+            if ! command -v docker &> /dev/null; then
+              sudo apt-get install docker.io -y
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker ${{ secrets.AWS_UBUNTU_USER }}
+            fi
+
+            # Create a new Docker network
+            if ! sudo docker network ls | grep -q my_network; then
+              echo "Docker network 'my_network' does not exist. Creating it..."
+              sudo docker network create my_network
+            else
+              echo "Docker network 'my_network' already exists."
+            fi
+
+            # Check if MongoDB container is already running
+            if sudo docker ps --format '{{.Names}}' | grep -Eq "^mongo\$"; then
+              echo "MongoDB container is already running."
+            else
+              # Create Docker volume for MongoDB
+              if ! sudo docker volume ls | grep -q mongo-data; then
+                sudo docker volume create mongo-data
+              fi
+
+              # Stop and remove existing MongoDB container if it exists
+              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^mongo\$"; then
+                sudo docker stop mongo
+                sudo docker rm mongo
+              fi
+
+              # Wait for 2s
+              sleep 2
+
+              # Run MongoDB container
+              sudo docker run -d --name mongo \
+              --network my_network \
+              -v mongo-data:/data/db \
+              -p 27017:27017 \
+              mongo
+
+              # Wait for MongoDB to initialize
+              until sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; do
+                echo "Waiting for MongoDB to be ready..."
+                sleep 2
+              done
+
+              echo "MongoDB container is up and running."
+            fi
+          debug: true  # Enable debug mode

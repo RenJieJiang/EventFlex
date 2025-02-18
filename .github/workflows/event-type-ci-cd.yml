@@ -24,7 +24,7 @@ jobs:
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.AWS_EC2_HOST_EVENT_TYPE }}
+          host: ${{ secrets.AWS_EC2_DB_SERVER }}
           username: ${{ secrets.AWS_UBUNTU_USER }} # ubuntu for Unbuntu; ec2-user for Amazon Linux 2
           key: ${{ secrets.AWS_EC2_KEY }}
           script: |

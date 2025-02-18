@@ -76,7 +76,7 @@ jobs:
               # Wait for MongoDB to initialize
               echo "Waiting for MongoDB to be ready..."
               for i in {1..30}; do
-                if sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; then
+                if sudo docker exec mongo mongosh --eval "print('MongoDB is ready')" &> /dev/null; then
                   echo "MongoDB is ready."
                   break
                 else
@@ -85,7 +85,7 @@ jobs:
                 fi
               done
 
-              if ! sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; then
+              if ! sudo docker exec mongo mongosh --eval "print('MongoDB is ready')" &> /dev/null; then
                 echo "MongoDB failed to start within the expected time."
                 exit 1
               fi
@@ -94,7 +94,7 @@ jobs:
             fi
 
             # Check if the event_type_db database and event_types collection exist, and insert a record if they do not
-            sudo docker exec mongo mongo --eval '
+            sudo docker exec mongo mongosh --eval '
             db = db.getSiblingDB("event_type_db");
             if (db.getCollectionNames().indexOf("event_types") < 0) {
               db.createCollection("event_types");

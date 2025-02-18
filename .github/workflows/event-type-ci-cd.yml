@@ -74,10 +74,21 @@ jobs:
               mongo
 
               # Wait for MongoDB to initialize
-              until sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; do
-                echo "Waiting for MongoDB to be ready..."
-                sleep 2
+              echo "Waiting for MongoDB to be ready..."
+              for i in {1..30}; do
+                if sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; then
+                  echo "MongoDB is ready."
+                  break
+                else
+                  echo "Waiting for MongoDB to be ready... ($i/30)"
+                  sleep 2
+                fi
               done
+
+              if ! sudo docker exec mongo mongo --eval "print('MongoDB is ready')" &> /dev/null; then
+                echo "MongoDB failed to start within the expected time."
+                exit 1
+              fi
 
               echo "MongoDB container is up and running."
             fi

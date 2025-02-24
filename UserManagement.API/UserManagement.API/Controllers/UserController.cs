@@ -157,19 +157,23 @@ namespace UserManagement.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteUser(string id)
         {
-            if (string.IsNullOrEmpty(id) || id == Guid.Empty.ToString())
+            if (!Guid.TryParse(id, out var userId) || userId == Guid.Empty)
             {
                 return BadRequest("User ID is required.");
             }
 
             // Retrieve the existing user
-            var existingUser = await _userManager.FindByIdAsync(id.ToString());
+            var existingUser = await _userManager.FindByIdAsync(id);
             if (existingUser == null)
             {
                 return NotFound();
             }
 
-            await _userManager.DeleteAsync(existingUser);
+            var result = await _userManager.DeleteAsync(existingUser);
+            if (!result.Succeeded)
+            {
+                return StatusCode(500, "Failed to delete the user.");
+            }
             return NoContent();
         }
 

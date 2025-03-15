@@ -88,11 +88,11 @@ jobs:
           if [ "$PLATFORM" == "aws" ]; then
             echo "HOST=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}" >> $GITHUB_ENV
             echo "USERNAME=${{ secrets.AWS_UBUNTU_USER }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.AWS_EC2_KEY }}" >> $GITHUB_ENV
+            # We'll use the SSH key directly in the subsequent steps instead of setting as env var
           else
             echo "HOST=${{ secrets.AZURE_VM_HOST }}" >> $GITHUB_ENV
             echo "USERNAME=${{ secrets.AZURE_VM_USERNAME }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.AZURE_SSH_PRIVATE_KEY }}" >> $GITHUB_ENV
+            # We'll use the SSH key directly in the subsequent steps instead of setting as env var
           fi
 
       # Copy docker-compose.yml to target VM
@@ -101,9 +101,9 @@ jobs:
         with:
           host: ${{ env.HOST }}
           username: ${{ env.USERNAME }}
-          key: ${{ env.SSH_KEY }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           source: "./MessagingService/docker/docker-compose.yml"
-          target: "/home/${{ env.USERNAME }}"
+          target: "/home/${{ env.USERNAME }}/MessagingService"
 
       # Deploy to VM
       - name: SSH to VM and deploy
@@ -111,7 +111,7 @@ jobs:
         with:
           host: ${{ env.HOST }}
           username: ${{ env.USERNAME }}
-          key: ${{ env.SSH_KEY }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           script: |
             echo "SSH connection successful to ${{ env.HOST }}"
             echo "Deploying to ${{ env.PLATFORM }} VM"

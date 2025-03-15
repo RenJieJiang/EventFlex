@@ -103,7 +103,7 @@ jobs:
           username: ${{ env.USERNAME }}
           key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           source: "./MessagingService/docker/docker-compose.yml"
-          target: "/home/${{ env.USERNAME }}/MessagingService"
+          target: "/home/${{ env.USERNAME }}"
 
       # Deploy to VM
       - name: SSH to VM and deploy

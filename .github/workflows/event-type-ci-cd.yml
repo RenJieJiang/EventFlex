@@ -12,6 +12,15 @@ on:
     paths:
       - '.github/workflows/event-type-ci-cd.yml'
   workflow_dispatch:
+    inputs:
+      cloud_platform:
+        description: 'Cloud Platform for Deployment'
+        required: true
+        default: 'azure'
+        type: choice
+        options:
+          - aws
+          - azure
 
 jobs:
   setup-mongo:
@@ -21,14 +30,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Deploy to AWS EC2
+      # Determine which cloud platform to deploy to
+      - name: Set deployment variables
+        id: deployment-vars
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            PLATFORM="${{ github.event.inputs.cloud_platform }}"
+          else
+            PLATFORM="azure"  # Default to AZURE for non-manual trigger
+          fi
+          echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
+
+          # Set the appropriate host and username based on platform
+          if [ "$PLATFORM" == "aws" ]; then
+            echo "HOST=${{ secrets.AWS_EC2_DB_SERVER }}" >> $GITHUB_ENV
+            echo "USERNAME=${{ secrets.AWS_UBUNTU_USER }}" >> $GITHUB_ENV
+          else
+            echo "HOST=${{ secrets.AZURE_VM_HOST }}" >> $GITHUB_ENV
+            echo "USERNAME=${{ secrets.AZURE_VM_USERNAME }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy MongoDB to VM
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.AWS_EC2_DB_SERVER }}
-          username: ${{ secrets.AWS_UBUNTU_USER }} # ubuntu for Unbuntu; ec2-user for Amazon Linux 2
-          key: ${{ secrets.AWS_EC2_KEY }}
+          host: ${{ env.HOST }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           script: |
-            echo "SSH connection successful"
+            echo "SSH connection successful to ${{ env.HOST }}"
+            echo "Deploying MongoDB to ${{ env.PLATFORM }} VM"
+            
             # Update the package index
             sudo apt-get update -y
 
@@ -37,8 +68,16 @@ jobs:
               sudo apt-get install docker.io -y
               sudo systemctl start docker
               sudo systemctl enable docker
-              sudo usermod -aG docker ${{ secrets.AWS_UBUNTU_USER }}
+              sudo usermod -aG docker ${{ env.USERNAME }}
             fi
+
+            # Create docker group if it doesn't exist
+            if ! getent group docker > /dev/null; then
+              sudo groupadd docker
+            fi
+            
+            # Add user to docker group
+            sudo usermod -aG docker ${{ env.USERNAME }}
 
             # Create a new Docker network
             if ! sudo docker network ls | grep -q my_network; then
@@ -107,4 +146,8 @@ jobs:
             } else {
               print("Database and collection already exist.");
             }'
+            
+            # Output the MongoDB connection string for reference
+            echo "MongoDB deployed successfully on ${{ env.PLATFORM }}"
+            echo "MongoDB connection string: mongodb://${{ env.HOST }}:27017/event_type_db"
           debug: true  # Enable debug mode

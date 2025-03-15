@@ -1,4 +1,4 @@
-name: Build and Deploy NotificationService
+name: NotificationService CI/CD Pipeline
 
 on:
   push:
@@ -11,6 +11,16 @@ on:
       - main
     paths:
       - 'NotificationService/**'
+  workflow_dispatch:
+    inputs:
+      cloud_platform:
+        description: 'Cloud Platform for Deployment'
+        required: true
+        default: 'azure'
+        type: choice
+        options:
+          - aws
+          - azure
 
 jobs:
   build:
@@ -57,37 +67,58 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      # Determine which cloud platform to deploy to
+      - name: Set deployment variables
+        id: deployment-vars
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            PLATFORM="${{ github.event.inputs.cloud_platform }}"
+          else
+            PLATFORM="azure"  # Default to Azure for non-manual trigger
+          fi
+          echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
+
+          # Set the appropriate host and username based on platform
+          if [ "$PLATFORM" == "aws" ]; then
+            echo "HOST=${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}" >> $GITHUB_ENV
+            echo "USERNAME=${{ secrets.AWS_UBUNTU_USER }}" >> $GITHUB_ENV
+          else
+            echo "HOST=${{ secrets.AZURE_VM_HOST }}" >> $GITHUB_ENV
+            echo "USERNAME=${{ secrets.AZURE_VM_USERNAME }}" >> $GITHUB_ENV
+          fi
+
+      - name: Copy .env file to VM
+        uses: appleboy/scp-action@master
         with:
-          ssh-private-key: ${{ secrets.AWS_EC2_KEY }}
+          host: ${{ env.HOST }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
+          source: "NotificationService/.env"
+          target: "/home/${{ env.USERNAME }}"
+          strip_components: 1
 
-      # - name: Copy .env file to EC2
-      #   uses: appleboy/scp-action@master
-      #   with:
-      #     host: ${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}
-      #     username: ${{ secrets.AWS_UBUNTU_USER }}
-      #     key: ${{ secrets.AWS_EC2_KEY }}
-      #     source: "NotificationService/.env"
-      #     target: "/home/${{ secrets.AWS_UBUNTU_USER }}"
-
-      - name: Install Docker on EC2
+      - name: Install Docker on VM
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}
-          username: ${{ secrets.AWS_UBUNTU_USER }}
-          key: ${{ secrets.AWS_EC2_KEY }}
+          host: ${{ env.HOST }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           script: |
-            echo "SSH connection successful"
+            echo "SSH connection successful to ${{ env.HOST }}"
+            echo "Deploying to ${{ env.PLATFORM }} VM"
 
             # Update the package index
             sudo apt-get update -y
 
+            # Initialize the variable
+            docker_needs_restart=false
+
             # Check if Docker is installed
             if ! command -v docker &> /dev/null; then
-              sudo apt-get install docker -y
+              sudo apt-get install docker.io -y
               sudo systemctl start docker
               sudo systemctl enable docker
+              docker_needs_restart=true
             fi
 
             # Create docker group if it doesn't exist
@@ -97,23 +128,64 @@ jobs:
             fi
 
             # Add user to docker group
-            sudo usermod -aG docker ${{ secrets.AWS_UBUNTU_USER }}
+            sudo usermod -aG docker ${{ env.USERNAME }}
 
-      - name: Deploy Docker container to EC2
+            # Create a new Docker network if it doesn't exist
+            if ! sudo docker network ls | grep -q my_network; then
+              echo "Docker network 'my_network' does not exist. Creating it..."
+              sudo docker network create my_network
+            else
+              echo "Docker network 'my_network' already exists."
+            fi
+
+            # Restart Docker only if necessary
+            if [ "$docker_needs_restart" = true ]; then
+              sudo systemctl restart docker
+            fi
+          debug: true  # Enable debug mode
+
+      - name: Deploy NotificationService container
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AWS_EC2_HOST_MESSAGING_SERVICE }}
-          username: ${{ secrets.AWS_UBUNTU_USER }}
-          key: ${{ secrets.AWS_EC2_KEY }}
+          host: ${{ env.HOST }}
+          username: ${{ env.USERNAME }}
+          key: ${{ env.PLATFORM == 'aws' && secrets.AWS_EC2_KEY || secrets.AZURE_SSH_PRIVATE_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+            echo "Deploying NotificationService container..."
+
+            # Pull the Docker image
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
 
             # Stop and remove existing containers
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^notification-service\$"; then
+              echo "Stopping and removing existing notification-service container..."
               sudo docker stop notification-service
               sudo docker rm notification-service
             fi
 
-            docker run -d -p 3003:3003 --name notification-service --network my_network ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
-          debug: true  # Enable debug mode
+            # Run the notification service container
+            echo "Starting notification-service container..."
+            sudo docker run -d \
+              -p 3003:3003 \
+              --name notification-service \
+              --network my_network \
+              -e KAFKA_CLIENT_ID=notification-service \
+              -e KAFKA_BROKERS=kafka:9092 \
+              -e KAFKA_GROUP_ID=notification-group \
+              -e PORT=3003 \
+              -e SMTP_HOST=${{ secrets.SMTP_HOST }} \
+              -e SMTP_PORT=${{ secrets.SMTP_PORT }} \
+              -e SMTP_USER=${{ secrets.SMTP_USER }} \
+              -e SMTP_PASS=${{ secrets.SMTP_PASS }} \
+              ${{ secrets.DOCKER_USERNAME }}/notification-service:latest
+            
+            # Check if the container is running
+            if [ $(sudo docker inspect -f '{{.State.Running}}' notification-service) != "true" ]; then
+              echo "notification-service container failed to start. Logs:"
+              sudo docker logs notification-service
+              exit 1
+            fi
 
+            echo "NotificationService deployment to ${{ env.PLATFORM }} complete!"
+            echo "Service now available at http://${{ env.HOST }}:3003"
+          debug: true  # Enable debug mode

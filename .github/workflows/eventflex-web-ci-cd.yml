@@ -117,6 +117,7 @@ jobs:
         with:
           name: deployment-artifacts
           path: |
+            ./eventflex-web/docker-compose.yml
             ./certs/
 
   deploy-aws:
@@ -128,33 +129,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: deployment-artifacts
-
-      - name: Generate platform-specific docker-compose.yml for AWS
-        run: |
-          cat > ./docker-compose.yml << EOF
-          version: '3.8'
-      
-          services:
-            web:
-              image: billyjiang/eventflex-web:latest
-              container_name: eventflex-web
-              ports:
-                - "3000:3000"
-              environment:
-                - NODE_ENV=production
-                - NEXT_PUBLIC_API_URL=http://usermanagementapi:8080/api
-                - NEXT_PUBLIC_API_URL_EVENTTYPE=${{ secrets.AWS_EVENTTYPE_API_URL }}
-              volumes:
-                - /home/${{ secrets.AWS_UBUNTU_USER }}/certs:/app/certs
-              command: npm run start
-              networks:
-                - my_network
-      
-          networks:
-            my_network:
-              external: true
-          EOF    
+          name: deployment-artifacts   
           
       - name: Copy Docker Compose file and certificates to EC2
         uses: appleboy/scp-action@master
@@ -162,7 +137,7 @@ jobs:
           host: ${{ secrets.AWS_EC2_WEB_SERVER }}
           username: ${{ secrets.AWS_UBUNTU_USER }}
           key: ${{ secrets.AWS_EC2_KEY }}
-          source: "./docker-compose.yml,./certs/"
+          source: "./eventflex-web/docker-compose.yml,./certs/"
           target: "/home/${{ secrets.AWS_UBUNTU_USER }}"
           debug: true
 
@@ -230,33 +205,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: deployment-artifacts
-          
-      - name: Generate platform-specific docker-compose.yml for Azure
-        run: |
-          cat > ./docker-compose.yml << EOF
-          version: '3.8'
-      
-          services:
-            web:
-              image: billyjiang/eventflex-web:latest
-              container_name: eventflex-web
-              ports:
-                - "3000:3000"
-              environment:
-                - NODE_ENV=production
-                - NEXT_PUBLIC_API_URL=http://usermanagementapi:8080/api
-                - NEXT_PUBLIC_API_URL_EVENTTYPE=${{ secrets.AZURE_EVENTTYPE_API_URL }}
-              volumes:
-                - /home/${{ secrets.AZURE_VM_USERNAME }}/certs:/app/certs
-              command: npm run start
-              networks:
-                - my_network
-      
-          networks:
-            my_network:
-              external: true
-          EOF      
+          name: deployment-artifacts     
 
       - name: Copy Docker Compose file and certificates to Azure VM
         uses: appleboy/scp-action@master
@@ -264,8 +213,8 @@ jobs:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USERNAME }}
           key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
-          source: "./docker-compose.yml,./certs/"
-          target: "/home/${{ secrets.AZURE_VM_USERNAME }}/eventflex-web"
+          source: "./eventflex-web/docker-compose.yml,./certs/"
+          target: "/home/${{ secrets.AZURE_VM_USERNAME }}"
           debug: true
 
       - name: SSH to Azure VM and Deploy

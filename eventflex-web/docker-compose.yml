@@ -9,7 +9,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://usermanagementapi:8080/api
-      - NEXT_PUBLIC_API_URL_EVENTTYPE=https://4d3iwjbtng.execute-api.ap-southeast-2.amazonaws.com/Prod/api
+      - NEXT_PUBLIC_API_URL_EVENTTYPE=https://event-type-management.azurewebsites.net/api
     volumes:
       # 将宿主机上的证书目录挂载到容器内的/app/certs
       - /home/ubuntu/certs:/app/certs

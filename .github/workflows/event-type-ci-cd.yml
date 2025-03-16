@@ -42,15 +42,16 @@ jobs:
             PLATFORM="azure"  # Default to AZURE for non-manual trigger
           fi
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
-
+          echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
+      
           # Set the appropriate host and username based on platform
           if [ "$PLATFORM" == "aws" ]; then
-            echo "HOST=${{ secrets.AWS_EC2_DB_SERVER }}" >> $GITHUB_ENV
-            echo "USERNAME=${{ secrets.AWS_UBUNTU_USER }}" >> $GITHUB_ENV
+            HOST="${{ secrets.AWS_EC2_DB_SERVER }}"
           else
-            echo "HOST=${{ secrets.AZURE_VM_HOST }}" >> $GITHUB_ENV
-            echo "USERNAME=${{ secrets.AZURE_VM_USERNAME }}" >> $GITHUB_ENV
+            HOST="${{ secrets.AZURE_VM_HOST }}"
           fi
+          echo "HOST=$HOST" >> $GITHUB_ENV
+          echo "mongodb_host=$HOST" >> $GITHUB_OUTPUT
 
       - name: Deploy MongoDB to VM
         uses: appleboy/ssh-action@v0.1.7
@@ -155,8 +156,8 @@ jobs:
           debug: true  # Enable debug mode
           
     outputs:
-      platform: ${{ env.PLATFORM }}
-      mongodb_host: ${{ env.HOST }}
+      platform: ${{ steps.deployment-vars.outputs.platform }}
+      mongodb_host: ${{ steps.deployment-vars.outputs.mongodb_host }}
 
   deploy-function:
     needs: setup-mongo
@@ -216,6 +217,6 @@ jobs:
       run: |
         az functionapp config appsettings set --name ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }} \
         --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-        --settings "ConnectionStrings:MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
-        "MessagingService:Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
-        "MessagingService:Port=3002"
+        --settings "ConnectionStrings__MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
+        "MessagingService__Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
+        "MessagingService__Port=3002"

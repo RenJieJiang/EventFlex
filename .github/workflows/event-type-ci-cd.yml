@@ -1,4 +1,4 @@
-name: EventTypeManagement API MongoDB Setup
+name: EventTypeManagement API CI/CD Pipeline
 
 on:
   push:
@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - '.github/workflows/event-type-ci-cd.yml'
+      - 'EventTypeManagement.API/**'
   pull_request:
     branches:
       - main
     paths:
       - '.github/workflows/event-type-ci-cd.yml'
+      - 'EventTypeManagement.API/**'
   workflow_dispatch:
     inputs:
       cloud_platform:
@@ -151,3 +153,63 @@ jobs:
             echo "MongoDB deployed successfully on ${{ env.PLATFORM }}"
             echo "MongoDB connection string: mongodb://${{ env.HOST }}:27017/event_type_db"
           debug: true  # Enable debug mode
+          
+    outputs:
+      platform: ${{ env.PLATFORM }}
+      mongodb_host: ${{ env.HOST }}
+
+  deploy-function:
+    needs: setup-mongo
+    runs-on: ubuntu-latest
+    if: needs.setup-mongo.outputs.platform == 'azure'  # Only deploy to Azure Functions when Azure platform is selected
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install dependencies
+      run: dotnet restore ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj
+
+    - name: Build
+      run: dotnet build ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj --configuration Release
+
+    - name: Create appsettings.production.json
+      run: |
+        cat > ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/appsettings.production.json << EOF
+        {
+          "ConnectionStrings": {
+            "MongoDb": "mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db"
+          },
+          "MessagingService": {
+            "Domain": "${{ needs.setup-mongo.outputs.mongodb_host }}",
+            "Port": "3002"
+          }
+        }
+        EOF
+
+    - name: Publish
+      run: dotnet publish ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj --configuration Release --output ./publish
+
+    - name: Deploy to Azure Functions
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }}  # Use the name from secrets
+        package: ./publish
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+    - name: Update Function App Settings
+      uses: Azure/cli@v1
+      with:
+        inlineScript: |
+          az functionapp config appsettings set --name ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }} \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --settings "ConnectionStrings:MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
+          "MessagingService:Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
+          "MessagingService:Port=3002"
+      env:
+        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}

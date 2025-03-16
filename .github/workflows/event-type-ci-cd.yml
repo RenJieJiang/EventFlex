@@ -223,10 +223,20 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Install dependencies
-      run: dotnet restore ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj
+      run: |
+        dotnet restore ${{ env.PROJECT_PATH }}
+        if [ $? -ne 0 ]; then
+          echo "::error::Failed to restore dependencies"
+          exit 1
+        fi
 
     - name: Build
-      run: dotnet build ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj --configuration Release
+      run: |
+        dotnet build ${{ env.PROJECT_PATH }} --configuration Release
+        if [ $? -ne 0 ]; then
+          echo "::error::Failed to build the project"
+          exit 1
+        fi
 
     - name: Create appsettings.production.json
       run: |
@@ -244,7 +254,11 @@ jobs:
 
     - name: Publish and Package
       run: |
-        dotnet publish ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj --configuration Release --output ./publish
+        dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --output ./publish
+        if [ $? -ne 0 ]; then
+          echo "::error::Failed to publish the project"
+          exit 1
+        fi
         cd ./publish && zip -r ../EventTypeManagement.API.zip .
 
     - name: Login to Azure
@@ -269,3 +283,6 @@ jobs:
         --settings "ConnectionStrings__MongoDb=mongodb://${{ env.MONGODB_HOST_EXTERNAL }}:27017/event_type_db" \
         "MessagingService__Domain=${{ env.MONGODB_HOST_EXTERNAL }}" \
         "MessagingService__Port=3002"
+
+    env:
+      PROJECT_PATH: ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/EventTypeManagement.API.csproj

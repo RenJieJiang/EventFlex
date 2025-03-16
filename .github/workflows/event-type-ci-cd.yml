@@ -55,15 +55,22 @@ jobs:
             USERNAME="${{ secrets.AZURE_VM_USERNAME }}"
           fi
           
-          # Debug output
-          echo "Setting HOST to: $HOST_EXTERNAL"
-          echo "Setting USERNAME to: $USERNAME"
+          # Output to file that can be used by other jobs
+          echo "MONGODB_HOST_EXTERNAL=$HOST_EXTERNAL" >> $GITHUB_ENV
+          echo "MONGODB_HOST_EXTERNAL=$HOST_EXTERNAL" > mongodb_config.txt
+          echo "MONGODB_HOST_INTERNAL=$HOST_INTERNAL" >> mongodb_config.txt
           
           # Set environment variables
           echo "HOST=$HOST_EXTERNAL" >> $GITHUB_ENV
           echo "USERNAME=$USERNAME" >> $GITHUB_ENV
           echo "mongodb_host_external=$HOST_EXTERNAL" >> $GITHUB_OUTPUT
           echo "mongodb_host_internal=$HOST_INTERNAL" >> $GITHUB_OUTPUT
+
+      - name: Upload config file
+        uses: actions/upload-artifact@v2
+        with:
+          name: mongodb-config
+          path: mongodb_config.txt
 
       - name: Deploy MongoDB to VM
         uses: appleboy/ssh-action@v0.1.7
@@ -173,7 +180,7 @@ jobs:
           echo "platform = ${{ steps.deployment-vars.outputs.platform }}"
           echo "mongodb_host_external = ${{ steps.deployment-vars.outputs.mongodb_host_external }}"
           echo "mongodb_host_internal = ${{ steps.deployment-vars.outputs.mongodb_host_internal }}"    
-          
+
     outputs:
       platform: ${{ steps.deployment-vars.outputs.platform }}
       mongodb_host_internal: ${{ steps.deployment-vars.outputs.mongodb_host_internal }}
@@ -185,6 +192,11 @@ jobs:
     if: needs.setup-mongo.outputs.platform == 'azure'  # Only deploy to Azure Functions when Azure platform is selected
     
     steps:
+    - name: Debug job inputs
+      run: |
+        echo "All available variables from needs.setup-mongo.outputs:"
+        echo "JSON: '${{ toJSON(needs.setup-mongo.outputs) }}'"
+
     - name: Checkout code
       uses: actions/checkout@v2
 
@@ -233,10 +245,17 @@ jobs:
         respect-funcignore: false
         scm-do-build-during-deployment: false
 
-    - name: Debug Connection String
+    - name: Download config file
+      uses: actions/download-artifact@v2
+      with:
+        name: mongodb-config
+      
+    - name: Read config values
+      id: config
       run: |
-        echo "MongoDB Host from previous job: '${{ needs.setup-mongo.outputs.mongodb_host_external }}'"
-        echo "Connection String will be: 'mongodb://${{ needs.setup-mongo.outputs.mongodb_host_external }}:27017/event_type_db'"
+        MONGODB_HOST_EXTERNAL=$(grep MONGODB_HOST_EXTERNAL mongodb_config.txt | cut -d= -f2)
+        echo "MONGODB_HOST_EXTERNAL=$MONGODB_HOST_EXTERNAL" >> $GITHUB_ENV
+        echo "Found MongoDB host: $MONGODB_HOST_EXTERNAL"
 
     - name: Update Function App Settings
       run: |

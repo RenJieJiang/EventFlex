@@ -185,7 +185,7 @@ jobs:
     outputs:
       platform: ${{ steps.deployment-vars.outputs.platform }}
       mongodb_host_internal: ${{ steps.deployment-vars.outputs.mongodb_host_internal }}
-      mongodb_host_external: ${{ steps.deployment-vars.outputs.mongodb_host_external }}
+      mongodb_host_external: ${{ env.MONGODB_HOST_EXTERNAL }}
 
   deploy-function:
     needs: setup-mongo

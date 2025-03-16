@@ -43,18 +43,20 @@ jobs:
           fi
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
-        
-          # Set the appropriate host and username based on platform
+          
+          # Set both external and internal hostnames
           if [ "$PLATFORM" == "aws" ]; then
-            HOST="${{ secrets.AWS_EC2_DB_SERVER }}"
-            USERNAME="${{ secrets.AWS_UBUNTU_USER }}"
+            HOST_EXTERNAL="${{ secrets.AWS_EC2_DB_SERVER }}"
+            HOST_INTERNAL="mongo"  # Docker container name
           else
-            HOST="${{ secrets.AZURE_VM_HOST }}"
-            USERNAME="${{ secrets.AZURE_VM_USERNAME }}"
+            HOST_EXTERNAL="${{ secrets.AZURE_VM_HOST }}"
+            HOST_INTERNAL="mongo"  # Docker container name
           fi
-          echo "HOST=$HOST" >> $GITHUB_ENV
+          
+          echo "HOST=$HOST_EXTERNAL" >> $GITHUB_ENV
           echo "USERNAME=$USERNAME" >> $GITHUB_ENV
-          echo "mongodb_host=$HOST" >> $GITHUB_OUTPUT
+          echo "mongodb_host_external=$HOST_EXTERNAL" >> $GITHUB_OUTPUT
+          echo "mongodb_host_internal=$HOST_INTERNAL" >> $GITHUB_OUTPUT
 
       - name: Deploy MongoDB to VM
         uses: appleboy/ssh-action@v0.1.7
@@ -160,7 +162,8 @@ jobs:
           
     outputs:
       platform: ${{ steps.deployment-vars.outputs.platform }}
-      mongodb_host: ${{ steps.deployment-vars.outputs.mongodb_host }}
+      mongodb_host_internal: ${{ steps.deployment-vars.outputs.mongodb_host_internal }}
+      mongodb_host_external: ${{ steps.deployment-vars.outputs.mongodb_host_external }}
 
   deploy-function:
     needs: setup-mongo
@@ -216,10 +219,15 @@ jobs:
         respect-funcignore: false
         scm-do-build-during-deployment: false
 
+    - name: Debug Connection String
+      run: |
+        echo "MongoDB Host from previous job: '${{ needs.setup-mongo.outputs.mongodb_host_external }}'"
+        echo "Connection String will be: 'mongodb://${{ needs.setup-mongo.outputs.mongodb_host_external }}:27017/event_type_db'"
+
     - name: Update Function App Settings
       run: |
         az functionapp config appsettings set --name ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }} \
         --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-        --settings "ConnectionStrings__MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
-        "MessagingService__Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
+        --settings "ConnectionStrings__MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host_external }}:27017/event_type_db" \
+        "MessagingService__Domain=${{ needs.setup-mongo.outputs.mongodb_host_external }}" \
         "MessagingService__Port=3002"

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import DeleteButton from "./components/DeleteButton";
 import EditButton from "./components/EditButton";
 import AddButton from "./components/AddButton";

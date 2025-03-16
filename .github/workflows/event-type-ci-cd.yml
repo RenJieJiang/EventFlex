@@ -67,7 +67,7 @@ jobs:
           echo "mongodb_host_internal=$HOST_INTERNAL" >> $GITHUB_OUTPUT
 
       - name: Upload config file
-        uses: actions/upload-artifact@v4 # v4.0.0
+        uses: actions/upload-artifact@v4 
         with:
           name: mongodb-config
           path: mongodb_config.txt
@@ -178,8 +178,9 @@ jobs:
         run: |
           echo "Setting outputs:"
           echo "platform = ${{ steps.deployment-vars.outputs.platform }}"
+          echo "mongodb_host_internal = ${{ steps.deployment-vars.outputs.mongodb_host_internal }}"
           echo "mongodb_host_external = ${{ steps.deployment-vars.outputs.mongodb_host_external }}"
-          echo "mongodb_host_internal = ${{ steps.deployment-vars.outputs.mongodb_host_internal }}"    
+          echo "Get external host from env: ${{ env.MONGODB_HOST_EXTERNAL }}"
 
     outputs:
       platform: ${{ steps.deployment-vars.outputs.platform }}
@@ -196,9 +197,10 @@ jobs:
       run: |
         echo "All available variables from needs.setup-mongo.outputs:"
         echo "JSON: '${{ toJSON(needs.setup-mongo.outputs) }}'"
+        echo "mongodb_host_external: ${{ needs.setup-mongo.outputs.mongodb_host_external }}"
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v4
@@ -246,7 +248,7 @@ jobs:
         scm-do-build-during-deployment: false
 
     - name: Download config file
-      uses: actions/download-artifact@v4 # v4.0.0
+      uses: actions/download-artifact@v4
       with:
         name: mongodb-config
       

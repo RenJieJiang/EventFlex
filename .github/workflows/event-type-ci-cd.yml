@@ -67,7 +67,7 @@ jobs:
           echo "mongodb_host_internal=$HOST_INTERNAL" >> $GITHUB_OUTPUT
 
       - name: Upload config file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
         with:
           name: mongodb-config
           path: mongodb_config.txt

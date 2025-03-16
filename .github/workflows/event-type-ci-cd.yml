@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/event-type-ci-cd.yml'
+      # - '.github/workflows/event-type-ci-cd.yml'
       - 'EventTypeManagement.API/**'
   pull_request:
     branches:
       - main
     paths:
-      - '.github/workflows/event-type-ci-cd.yml'
+      # - '.github/workflows/event-type-ci-cd.yml'
       - 'EventTypeManagement.API/**'
   workflow_dispatch:
     inputs:
@@ -202,14 +202,15 @@ jobs:
         package: ./publish
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
-    - name: Update Function App Settings
-      uses: Azure/cli@v1
+    - name: Login to Azure
+      uses: azure/login@v1
       with:
-        inlineScript: |
-          az functionapp config appsettings set --name ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }} \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-          --settings "ConnectionStrings:MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
-          "MessagingService:Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
-          "MessagingService:Port=3002"
-      env:
-        AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Update Function App Settings
+      run: |
+        az functionapp config appsettings set --name ${{ secrets.AZURE_FUNCTION_APP_EVENT_TYPE }} \
+        --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+        --settings "ConnectionStrings:MongoDb=mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db" \
+        "MessagingService:Domain=${{ needs.setup-mongo.outputs.mongodb_host }}" \
+        "MessagingService:Port=3002"

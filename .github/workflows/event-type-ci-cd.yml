@@ -43,14 +43,17 @@ jobs:
           fi
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
-      
+        
           # Set the appropriate host and username based on platform
           if [ "$PLATFORM" == "aws" ]; then
             HOST="${{ secrets.AWS_EC2_DB_SERVER }}"
+            USERNAME="${{ secrets.AWS_UBUNTU_USER }}"
           else
             HOST="${{ secrets.AZURE_VM_HOST }}"
+            USERNAME="${{ secrets.AZURE_VM_USERNAME }}"
           fi
           echo "HOST=$HOST" >> $GITHUB_ENV
+          echo "USERNAME=$USERNAME" >> $GITHUB_ENV
           echo "mongodb_host=$HOST" >> $GITHUB_OUTPUT
 
       - name: Deploy MongoDB to VM

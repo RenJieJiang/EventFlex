@@ -44,15 +44,22 @@ jobs:
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
           echo "platform=$PLATFORM" >> $GITHUB_OUTPUT
           
-          # Set both external and internal hostnames
+          # Set both external and internal hostnames WITH USERNAMES
           if [ "$PLATFORM" == "aws" ]; then
             HOST_EXTERNAL="${{ secrets.AWS_EC2_DB_SERVER }}"
             HOST_INTERNAL="mongo"  # Docker container name
+            USERNAME="${{ secrets.AWS_UBUNTU_USER }}"
           else
             HOST_EXTERNAL="${{ secrets.AZURE_VM_HOST }}"
             HOST_INTERNAL="mongo"  # Docker container name
+            USERNAME="${{ secrets.AZURE_VM_USERNAME }}"
           fi
           
+          # Debug output
+          echo "Setting HOST to: $HOST_EXTERNAL"
+          echo "Setting USERNAME to: $USERNAME"
+          
+          # Set environment variables
           echo "HOST=$HOST_EXTERNAL" >> $GITHUB_ENV
           echo "USERNAME=$USERNAME" >> $GITHUB_ENV
           echo "mongodb_host_external=$HOST_EXTERNAL" >> $GITHUB_OUTPUT

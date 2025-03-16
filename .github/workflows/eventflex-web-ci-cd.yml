@@ -91,10 +91,15 @@ jobs:
 
       - name: Check for code changes
         id: check-changes
+        continue-on-error: true
         run: |
-          git fetch origin main
-          CHANGED=$(git diff --name-only origin/main...HEAD | grep -c "^eventflex-web/")
+          git fetch --unshallow origin main || git fetch origin main
+          CHANGED=0
+          if git diff --name-only origin/main...HEAD | grep -q "^eventflex-web/"; then
+            CHANGED=1
+          fi
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Files changed in eventflex-web: $CHANGED"
 
       - name: Build and Push Docker image
         uses: docker/build-push-action@v4  # Use the official action instead of CLI

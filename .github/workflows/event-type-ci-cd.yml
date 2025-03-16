@@ -166,6 +166,13 @@ jobs:
             echo "MongoDB deployed successfully on ${{ env.PLATFORM }}"
             echo "MongoDB connection string: mongodb://${{ env.HOST }}:27017/event_type_db"
           debug: true  # Enable debug mode
+    
+      - name: Debug Output Variables
+        run: |
+          echo "Setting outputs:"
+          echo "platform = ${{ steps.deployment-vars.outputs.platform }}"
+          echo "mongodb_host_external = ${{ steps.deployment-vars.outputs.mongodb_host_external }}"
+          echo "mongodb_host_internal = ${{ steps.deployment-vars.outputs.mongodb_host_internal }}"    
           
     outputs:
       platform: ${{ steps.deployment-vars.outputs.platform }}
@@ -197,10 +204,10 @@ jobs:
         cat > ./EventTypeManagement.API/EventTypeManagement.API/src/EventTypeManagement.API/appsettings.production.json << EOF
         {
           "ConnectionStrings": {
-            "MongoDb": "mongodb://${{ needs.setup-mongo.outputs.mongodb_host }}:27017/event_type_db"
+            "MongoDb": "mongodb://${{ needs.setup-mongo.outputs.mongodb_host_external }}:27017/event_type_db"
           },
           "MessagingService": {
-            "Domain": "${{ needs.setup-mongo.outputs.mongodb_host }}",
+            "Domain": "${{ needs.setup-mongo.outputs.mongodb_host_external }}",
             "Port": "3002"
           }
         }

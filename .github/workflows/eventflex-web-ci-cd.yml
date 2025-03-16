@@ -48,6 +48,14 @@ jobs:
         with:
           node-version: 20
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: ./eventflex-web/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('./eventflex-web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm install
         working-directory: ./eventflex-web
@@ -81,11 +89,22 @@ jobs:
           stat ./certs/key.pem
           stat ./certs/cert.pem
 
-      - name: Build and Push Docker image
+      - name: Check for code changes
+        id: check-changes
         run: |
-          cd eventflex-web
-          docker buildx create --use
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest --push .
+          git fetch origin main
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep -c "^eventflex-web/")
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v4  # Use the official action instead of CLI
+        with:
+          context: ./eventflex-web
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+          # platforms: linux/amd64,linux/arm64
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/eventflex-web:latest
+          cache-to: type=inline
           
       # Upload artifacts needed for both deployments
       - name: Upload artifacts

@@ -6,10 +6,13 @@ namespace EventTypeManagement.API.Data
     public class MongoDbContext
     {
         private readonly IMongoDatabase _database;
+        public string ConnectionString { get; }
+        public IMongoDatabase Database { get { return _database; }  }
 
         public MongoDbContext(IConfiguration configuration)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDb"));
+            ConnectionString = configuration.GetConnectionString("MongoDb") ?? "";
+            var client = new MongoClient(ConnectionString);
             _database = client.GetDatabase("event_type_db");
 
             CreateIndexes();

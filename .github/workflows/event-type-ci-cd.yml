@@ -158,8 +158,8 @@ jobs:
               db.createCollection("event_types");
               db.event_types.insertOne({
                 "_id": ObjectId("676427e7ba57f1c2c5af93f4"),
-                "Name": "PropertyInspect",
-                "Description": "Property Inspect"
+                "name": "PropertyInspect",
+                "description": "Property Inspect"
               });
               print("Database and collection created, and record inserted.");
             } else {

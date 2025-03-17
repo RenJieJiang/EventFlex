@@ -12,9 +12,11 @@ namespace EventTypeManagement.API.Models
 
         [Required]
         [StringLength(100)]
+        [BsonElement("name")]
         public required string Name { get; set; }
 
         [StringLength(500)]
+        [BsonElement("description")]
         public string? Description { get; set; }
     }
 }

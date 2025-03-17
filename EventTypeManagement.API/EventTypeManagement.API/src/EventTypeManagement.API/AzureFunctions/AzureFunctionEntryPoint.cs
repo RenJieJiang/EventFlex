@@ -58,9 +58,13 @@ namespace EventTypeManagement.API
               
               try
               {
-                  // Skip all MongoDB operations and just return a test response
-                  return new OkObjectResult(new { message = "Hello World from Event Types API" });
-              }
+                var connStr = _context.ConnectionString ?? "null";
+                var sanitizedConnStr = connStr.Contains("@")
+                    ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]"
+                    : "[CONNECTION STRING NOT FOUND]";
+                _logger.LogInformation($"Attempting MongoDB connection with: {sanitizedConnStr}");
+                return new OkObjectResult(sanitizedConnStr);
+            }
               catch (Exception ex)
               {
                   _logger.LogError($"Error in GetEventTypes Hello World test: {ex.Message}");

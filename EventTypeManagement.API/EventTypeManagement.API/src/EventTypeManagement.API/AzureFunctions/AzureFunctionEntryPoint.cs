@@ -53,8 +53,7 @@ namespace EventTypeManagement.API
         public async Task<IActionResult> GetEventTypes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "eventtypes")] HttpRequest req)
         {
-              _logger.LogInformation("GetEventTypes function triggered - Hello World test");
-              System.Console.WriteLine("Console log: GetEventTypes - Hello World test");
+              _logger.LogInformation($"GetEventTypes function triggered with conn string: - {_context.ConnectionString}");
               
               try
               {

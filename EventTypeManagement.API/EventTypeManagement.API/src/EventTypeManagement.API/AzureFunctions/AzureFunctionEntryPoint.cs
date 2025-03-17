@@ -19,6 +19,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using EventTypeManagement.API.AzureFunctions;
+using Microsoft.Extensions.Logging;
 
 [assembly: FunctionsStartup(typeof(AzureFunctionStartup))]
 
@@ -38,38 +39,42 @@ namespace EventTypeManagement.API
         private readonly MongoDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EventTypeFunctions> _logger;
 
-        public EventTypeFunctions(MongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public EventTypeFunctions(MongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<EventTypeFunctions> logger)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [FunctionName("GetEventTypes")]
         public async Task<IActionResult> GetEventTypes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "eventtypes")] HttpRequest req)
         {
-            log.LogInformation("GetEventTypes function triggered");
-            try {
+            _logger.LogInformation("GetEventTypes function triggered");
+            try
+            {
                 // Log connection string (sanitized)
                 var connStr = _context.ConnectionString ?? "null";
-                var sanitizedConnStr = connStr.Contains("@") 
-                    ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]" 
+                var sanitizedConnStr = connStr.Contains("@")
+                    ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]"
                     : "[CONNECTION STRING NOT FOUND]";
-                Console.WriteLine($"Attempting MongoDB connection with: {sanitizedConnStr}");
-                    
+                _logger.LogInformation($"Attempting MongoDB connection with: {sanitizedConnStr}");
+
                 // Try to get collection stats first as a quick test
                 var stats = await _context.Database.RunCommandAsync<BsonDocument>(new BsonDocument("dbstats", 1));
-                Console.WriteLine($"Connected to MongoDB. Database stats: {stats.ToJson()}");
-                
+                _logger.LogInformation($"Connected to MongoDB. Database stats: {stats.ToJson()}");
+
                 var eventTypes = await _context.EventTypes.Find(_ => true).ToListAsync();
-                Console.WriteLine($"Found {eventTypes.Count} event types");
+                _logger.LogInformation($"Found {eventTypes.Count} event types");
                 return new OkObjectResult(eventTypes);
             }
-            catch (Exception ex) {
-                Console.WriteLine($"Error in GetEventTypes: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in GetEventTypes: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
                 return new StatusCodeResult(500);
             }
         }

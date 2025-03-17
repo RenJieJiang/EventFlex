@@ -12,13 +12,23 @@ export interface EventType {
 console.log('isDevelopment', isDevelopment);
 
 export const fetchEventTypes = async (): Promise<EventType[]> => {
-  const response = await customFetch<EventType[]>(`${process.env.NEXT_PUBLIC_API_URL_EVENTTYPE}/eventtypes`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_EVENTTYPE}/eventtypes`;
+  console.log('Fetching event types from:', apiUrl);
 
-  return response;
+  try {
+    const response = await customFetch<EventType[]>(apiUrl, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    console.log('Response data:', response);
+
+    return response;
+  } catch (error) {
+    console.error('Error fetching event types:', error);
+    throw error;
+  }
 };
 
 export const deleteEventType = async (id: string): Promise<void> => {

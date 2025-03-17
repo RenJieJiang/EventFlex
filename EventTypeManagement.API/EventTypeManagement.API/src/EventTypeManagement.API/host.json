@@ -5,7 +5,18 @@
       "samplingSettings": {
         "isEnabled": true,
         "excludedTypes": "Request"
-      }
+      },
+      "enableLiveMetrics": true,
+      "enableDependencyTracking": true,
+      "enablePerformanceCountersCollection": true
+    },
+    "logLevel": {
+      "default": "Information",
+      "EventTypeManagement.API": "Debug",
+      "Function": "Debug"
+    },
+    "console": {
+      "isEnabled": true
     }
   },
   "extensions": {

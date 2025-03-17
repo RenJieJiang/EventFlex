@@ -50,6 +50,7 @@ namespace EventTypeManagement.API
         public async Task<IActionResult> GetEventTypes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "eventtypes")] HttpRequest req)
         {
+            log.LogInformation("GetEventTypes function triggered");
             try {
                 // Log connection string (sanitized)
                 var connStr = _context.ConnectionString ?? "null";

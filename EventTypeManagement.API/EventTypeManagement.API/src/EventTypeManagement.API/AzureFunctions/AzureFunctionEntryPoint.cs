@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using EventTypeManagement.API.AzureFunctions;
 using Microsoft.Extensions.Logging;
+using System.Net.Sockets;
 
 [assembly: FunctionsStartup(typeof(AzureFunctionStartup))]
 
@@ -49,53 +50,50 @@ namespace EventTypeManagement.API
             _logger = logger;
         }
 
+        [FunctionName("TestConnection")]
+        public IActionResult TestConnection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "test")] HttpRequest req)
+        {
+            try {
+                using (var client = new TcpClient())
+                {
+                    // Try connecting with a short timeout
+                    var result = client.BeginConnect("20.42.205.96", 27017, null, null);
+                    var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5));
+                    
+                    if (success && client.Connected) {
+                        return new OkObjectResult("Connection successful!");
+                    }
+                    return new OkObjectResult("Connection failed - timeout");
+                }
+            }
+            catch (Exception ex) {
+                return new OkObjectResult($"Connection error: {ex.Message}");
+            }
+        }
+
         [FunctionName("GetEventTypes")]
         public async Task<IActionResult> GetEventTypes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "eventtypes")] HttpRequest req)
         {
-              _logger.LogInformation($"GetEventTypes function triggered with conn string: - {_context.ConnectionString}");
-              
-              try
-              {
-                var connStr = _context.ConnectionString ?? "null";
-                var sanitizedConnStr = connStr.Contains("@")
-                    ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]"
-                    : "[CONNECTION STRING NOT FOUND]";
-                _logger.LogInformation($"Attempting MongoDB connection with: {sanitizedConnStr}");
-                return new OkObjectResult(sanitizedConnStr);
-            }
-              catch (Exception ex)
-              {
-                  _logger.LogError($"Error in GetEventTypes Hello World test: {ex.Message}");
-                  System.Console.WriteLine($"Console error: {ex.Message}");
-                  return new StatusCodeResult(500);
-              }
-
-            // _logger.LogInformation("GetEventTypes function triggered");
+            _logger.LogInformation($"GetEventTypes function triggered with conn string: - {_context.ConnectionString}");
             
-            // try
-            // {
-            //     // Log connection string (sanitized)
-            //     var connStr = _context.ConnectionString ?? "null";
-            //     var sanitizedConnStr = connStr.Contains("@")
-            //         ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]"
-            //         : "[CONNECTION STRING NOT FOUND]";
-            //     _logger.LogInformation($"Attempting MongoDB connection with: {sanitizedConnStr}");
+            try
+            {
+                // Try to get collection stats first as a quick test
+                var stats = await _context.Database.RunCommandAsync<BsonDocument>(new BsonDocument("dbstats", 1));
+                _logger.LogInformation($"Connected to MongoDB. Database stats: {stats.ToJson()}");
 
-            //     // Try to get collection stats first as a quick test
-            //     var stats = await _context.Database.RunCommandAsync<BsonDocument>(new BsonDocument("dbstats", 1));
-            //     _logger.LogInformation($"Connected to MongoDB. Database stats: {stats.ToJson()}");
-
-            //     var eventTypes = await _context.EventTypes.Find(_ => true).ToListAsync();
-            //     _logger.LogInformation($"Found {eventTypes.Count} event types");
-            //     return new OkObjectResult(eventTypes);
-            // }
-            // catch (Exception ex)
-            // {
-            //     _logger.LogError($"Error in GetEventTypes: {ex.Message}");
-            //     _logger.LogError($"Stack trace: {ex.StackTrace}");
-            //     return new StatusCodeResult(500);
-            // }
+                var eventTypes = await _context.EventTypes.Find(_ => true).ToListAsync();
+                _logger.LogInformation($"Found {eventTypes.Count} event types");
+                return new OkObjectResult(eventTypes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in GetEventTypes: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
+                return new StatusCodeResult(500);
+            }
         }
 
         [FunctionName("GetEventTypeById")]

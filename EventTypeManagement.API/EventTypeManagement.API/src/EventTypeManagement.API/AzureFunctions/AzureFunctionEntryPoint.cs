@@ -50,8 +50,27 @@ namespace EventTypeManagement.API
         public async Task<IActionResult> GetEventTypes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "eventtypes")] HttpRequest req)
         {
-            var eventTypes = await _context.EventTypes.Find(_ => true).ToListAsync();
-            return new OkObjectResult(eventTypes);
+            try {
+                // Log connection string (sanitized)
+                var connStr = _context.ConnectionString ?? "null";
+                var sanitizedConnStr = connStr.Contains("@") 
+                    ? connStr.Substring(0, connStr.IndexOf("@")) + "@[REDACTED]" 
+                    : "[CONNECTION STRING NOT FOUND]";
+                Console.WriteLine($"Attempting MongoDB connection with: {sanitizedConnStr}");
+                    
+                // Try to get collection stats first as a quick test
+                var stats = await _context.Database.RunCommandAsync<BsonDocument>(new BsonDocument("dbstats", 1));
+                Console.WriteLine($"Connected to MongoDB. Database stats: {stats.ToJson()}");
+                
+                var eventTypes = await _context.EventTypes.Find(_ => true).ToListAsync();
+                Console.WriteLine($"Found {eventTypes.Count} event types");
+                return new OkObjectResult(eventTypes);
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"Error in GetEventTypes: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return new StatusCodeResult(500);
+            }
         }
 
         [FunctionName("GetEventTypeById")]

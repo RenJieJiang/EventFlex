@@ -30,19 +30,19 @@ namespace EventTypeManagement.API
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddSingleton<MongoDbContext>();
+            builder.Services.AddSingleton<IMongoDbContext, MongoDbContext>();
             builder.Services.AddHttpClient();
         }
     }
 
     public class EventTypeFunctions
     {
-        private readonly MongoDbContext _context;
+        private readonly IMongoDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<EventTypeFunctions> _logger;
 
-        public EventTypeFunctions(MongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<EventTypeFunctions> logger)
+        public EventTypeFunctions(IMongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<EventTypeFunctions> logger)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;

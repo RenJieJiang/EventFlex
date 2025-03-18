@@ -3,7 +3,7 @@ using MongoDB.Driver;
 
 namespace EventTypeManagement.API.Data
 {
-    public class MongoDbContext
+    public class MongoDbContext : IMongoDbContext
     {
         private readonly IMongoDatabase _database;
         public string ConnectionString { get; }

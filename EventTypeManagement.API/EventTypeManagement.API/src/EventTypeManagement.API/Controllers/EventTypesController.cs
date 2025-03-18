@@ -15,11 +15,11 @@ namespace EventTypeManagement.API.Controllers
     [ApiController]
     public class EventTypesController : ControllerBase
     {
-        private readonly MongoDbContext _context;
+        private readonly IMongoDbContext _context;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
-        public EventTypesController(MongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public EventTypesController(IMongoDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;

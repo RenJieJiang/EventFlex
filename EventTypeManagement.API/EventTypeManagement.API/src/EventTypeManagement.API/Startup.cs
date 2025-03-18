@@ -15,7 +15,7 @@ namespace EventTypeManagement.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<IMongoDbContext, MongoDbContext>();
+            services.AddSingleton<MongoDbContext>();
             services.AddHttpClient(); // Register HttpClient
         }
 

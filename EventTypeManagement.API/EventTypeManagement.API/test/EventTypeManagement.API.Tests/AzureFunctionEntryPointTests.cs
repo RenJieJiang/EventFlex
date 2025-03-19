@@ -25,6 +25,7 @@ namespace EventTypeManagement.API.Tests
         private readonly IConfiguration _configuration;
         private readonly Mock<ILogger<EventTypeFunctions>> _mockLogger;
         private readonly Mock<IMongoCollection<EventType>> _mockCollection;
+        private readonly Mock<IMongoDatabase> _mockDatabase; // Store reference here
         private readonly EventTypeFunctions _functions;
 
         public EventTypeFunctionsTests()
@@ -39,10 +40,10 @@ namespace EventTypeManagement.API.Tests
             _mockHttpClientFactory = new Mock<IHttpClientFactory>();
             _mockLogger = new Mock<ILogger<EventTypeFunctions>>();
             _mockCollection = new Mock<IMongoCollection<EventType>>();
+            _mockDatabase = new Mock<IMongoDatabase>(); // Initialize here
 
-            // Create a mock database
-            var mockDatabase = new Mock<IMongoDatabase>();
-            mockDatabase.Setup(db => db.GetCollection<EventType>(It.IsAny<string>(), null))
+            // Configure database mock
+            _mockDatabase.Setup(db => db.GetCollection<EventType>(It.IsAny<string>(), null))
                 .Returns(_mockCollection.Object);
 
             // Create the real context WITH A CONSTRUCTOR THAT DOESN'T DO MUCH
@@ -51,12 +52,12 @@ namespace EventTypeManagement.API.Tests
             // Use reflection to replace the internal database field
             typeof(MongoDbContext)
                 .GetField("_database", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?.SetValue(mockContext, mockDatabase.Object);
+                ?.SetValue(mockContext, _mockDatabase.Object); // 将模拟的数据库对象赋值给 mockContext 的 _database 字段
 
             // Create the function instance
             _functions = new EventTypeFunctions(
                 mockContext,
-            _mockHttpClientFactory.Object,
+                _mockHttpClientFactory.Object,
                 _configuration,
                 _mockLogger.Object
             );
@@ -87,37 +88,10 @@ namespace EventTypeManagement.API.Tests
                 ))
                 .ReturnsAsync(mockCursor.Object);
 
-            // Ensure we have stats mocked - with proper null checking
+            // Setup the database stats using the stored _mockDatabase reference
             var mockStats = new BsonDocument { { "dbStats", 1 }, { "collections", 2 } };
 
-            // Get the database field with null checking
-            var databaseField = typeof(MongoDbContext)
-                .GetField("_database", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var contextField = _functions.GetType()
-                .GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            if (databaseField == null || contextField == null)
-            {
-                Assert.Fail("Could not find necessary fields via reflection. Test setup is incorrect.");
-            }
-
-            var context = contextField.GetValue(_functions);
-            if (context == null)
-            {
-                Assert.Fail("The _context field is null.");
-            }
-
-            var database = databaseField.GetValue(context);
-            if (database == null)
-            {
-                Assert.Fail("The _database field is null.");
-            }
-
-            var mockDatabase = Mock.Get((IMongoDatabase)database);
-
-            // Fix the nullability constraint warning
-            mockDatabase.Setup(d => d.RunCommandAsync(
+            _mockDatabase.Setup(d => d.RunCommandAsync(
                 It.IsAny<Command<BsonDocument>>(),
                 It.IsAny<ReadPreference>(),
                 It.IsAny<CancellationToken>()))
@@ -130,7 +104,7 @@ namespace EventTypeManagement.API.Tests
             // Act
             var result = await _functions.GetEventTypes(request);
 
-            // Assert - with better diagnostics
+            // Assert
             if (result is StatusCodeResult statusResult)
             {
                 Assert.Fail($"Expected OkObjectResult but got StatusCodeResult with status code: {statusResult.StatusCode}");

@@ -1,14 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using System.Data;
-using UserManagement.API.Constants;
 using UserManagement.API.Models;
 using UserManagement.API.Models.DTOs;
-using UserManagement.API.Messages;
+using UserManagement.API.Services;
 
 namespace UserManagement.API.Controllers
 {
@@ -16,42 +10,25 @@ namespace UserManagement.API.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        //private readonly IUserService _userService;
-        //private readonly ITenantService _tenantService;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IUserService _userService;
 
-        public UsersController(
-            //IUserService userService,
-            //ITenantService tenantService,
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration,
-            UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+        public UsersController(IUserService userService)
         {
-            //_userService = userService;
-            //_tenantService = tenantService;
-            _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
-            _userManager = userManager;
-            _roleManager = roleManager;
+            _userService = userService;
         }
 
         [HttpGet]
         [Authorize]
         public async Task<ActionResult<IEnumerable<ApplicationUser>>> GetAllUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
-            
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ApplicationUser>> GetUserById(Guid id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -60,131 +37,73 @@ namespace UserManagement.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddUser(ApplicationUserModel userDto)
+        public async Task<ActionResult<ApplicationUser>> AddUser(ApplicationUserModel userDto)
         {
-            // Convert DTO to entity
-            var user = new ApplicationUser
+            try
             {
-                UserName = userDto.Email,
-                Name = userDto.Name ?? "",
-                Email = userDto.Email,
-                PhoneNumber = userDto.PhoneNumber,
-                //TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId),
-                EmailConfirmed = true
-            };
-
-            // Set initial password if none is provided
-            var password = string.IsNullOrWhiteSpace(userDto.Password) ? "Password@123" : userDto.Password;
-
-            // Create user
-            var createUserResult = await _userManager.CreateAsync(user, password);
-            if (!createUserResult.Succeeded)
-            {
-                var errors = createUserResult.Errors.Select(e => e.Description);
-                return BadRequest($"User creation failed: {string.Join(", ", errors)}");
+                var user = await _userService.CreateUserAsync(userDto);
+                return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
             }
-
-            // Ensure the user exists before assigning a role
-            var foundUser = await _userManager.FindByEmailAsync(user.Email);
-            if (foundUser == null)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, "User creation succeeded but could not retrieve the user.");
+                return BadRequest(ex.Message);
             }
-
-            // Assign role
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(foundUser, Roles.User);
-            if (!addUserToRoleResult.Succeeded)
+            catch (Exception)
             {
-                var errors = addUserToRoleResult.Errors.Select(e => e.Description);
-                return BadRequest($"Failed to assign role: {string.Join(", ", errors)}");
+                return StatusCode(500, "An error occurred while creating the user.");
             }
-
-            // Notify messaging service
-            var message = new UserCreatedMessage
-            {
-                Id = foundUser.Id.ToString(),
-                UserName = foundUser.UserName,
-                Email = foundUser.Email,
-                PhoneNumber = foundUser.PhoneNumber,
-                CreatedAt = DateTime.UtcNow
-            };
-            var response = await SendMessageAsync("message/user-created", message);
-            if (!response.IsSuccessStatusCode)
-            {
-                return StatusCode((int)response.StatusCode, "Failed to notify the messaging service.");
-            }
-
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, foundUser);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(Guid id, ApplicationUserModel userDto)
+        public async Task<ActionResult<object>> UpdateUser(Guid id, ApplicationUserModel userDto)
         {
-            if (id == Guid.Empty)
+            try
             {
-                return BadRequest("User ID is required.");
+                await _userService.UpdateUserAsync(id, userDto);
+                return NoContent();
             }
-
-            // Retrieve the existing user
-            var existingUser = await _userManager.FindByIdAsync(id.ToString());
-            if (existingUser == null)
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            // Update the properties of the existing user
-            existingUser.UserName = userDto.Email;
-            existingUser.Name = userDto.Name;
-            existingUser.Email = userDto.Email;
-            existingUser.PhoneNumber = userDto.PhoneNumber;
-            //existingUser.TenantId = string.IsNullOrEmpty(userDto.TenantId) ? (Guid?)null : Guid.Parse(userDto.TenantId);
-
-
-            // Validate TenantId
-            //if (existingUser.TenantId != null)
-            //{
-            //    var tenant = await _tenantService.GetTenantByIdAsync(existingUser.TenantId.Value);
-            //    if (tenant == null)
-            //    {
-            //        return BadRequest("Tenant does not exist.");
-            //    }
-            //}
-
-            await _userManager.UpdateAsync(existingUser);
-            return NoContent();
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while updating the user.");
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUser(string id)
+        public async Task<ActionResult<object>> DeleteUser(string id)
         {
-            if (!Guid.TryParse(id, out var userId) || userId == Guid.Empty)
+            try
             {
-                return BadRequest("User ID is required.");
+                await _userService.DeleteUserAsync(id);
+                return NoContent();
             }
-
-            // Retrieve the existing user
-            var existingUser = await _userManager.FindByIdAsync(id);
-            if (existingUser == null)
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var result = await _userManager.DeleteAsync(existingUser);
-            if (!result.Succeeded)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, "Failed to delete the user.");
+                return BadRequest(ex.Message);
             }
-            return NoContent();
-        }
-
-        private async Task<HttpResponseMessage> SendMessageAsync(string endpoint, object message)
-        {
-            var httpClient = _httpClientFactory.CreateClient();
-            var messagingServiceDomain = _configuration["MessagingService:Domain"] ?? "messaging-service";
-            var messagingServicePort = _configuration["MessagingService:Port"] ?? "3002";
-            var url = $"http://{messagingServiceDomain}:{messagingServicePort}/{endpoint}";
-            var content = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
-            return await httpClient.PostAsync(url, content);
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while deleting the user.");
+            }
         }
     }
 }

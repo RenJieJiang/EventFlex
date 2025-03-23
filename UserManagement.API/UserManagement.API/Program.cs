@@ -16,10 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .EnableSensitiveDataLogging() // ��ʾ��������
-           .LogTo(Console.WriteLine, LogLevel.Information); // ���������̨;
+           .EnableSensitiveDataLogging() // ʾ
+           .LogTo(Console.WriteLine, LogLevel.Information); // ̨;
 });
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // For Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

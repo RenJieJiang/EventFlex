@@ -1,0 +1,62 @@
+# .azure-devops/pipelines/messaging-service.yml
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - MessagingService/**
+    exclude:
+      - README.md
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  service: 'messaging-service'
+  dockerRegistryServiceConnection: 'acr-eventflex-connection'
+  containerRegistry: 'eventflex.azurecr.io'
+  imageRepository: 'messaging-service'
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image
+      inputs:
+        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: $(imageRepository)
+        command: 'buildAndPush'
+        Dockerfile: 'MessagingService/Dockerfile'
+        tags: |
+          $(tag)
+          latest
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'development'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'aks-eventflex-connection'
+              namespace: 'default'
+              manifests: |
+                k8s/messaging-service/deployment.yaml
+                k8s/messaging-service/service.yaml
+              containers: '$(containerRegistry)/$(imageRepository):$(tag)'

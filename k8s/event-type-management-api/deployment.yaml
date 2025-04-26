@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: event-type-management-api
-        image: event-type-management-api:latest
+        image: eventflex.azurecr.io/event-type-management-api:$(Build.BuildId)
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80

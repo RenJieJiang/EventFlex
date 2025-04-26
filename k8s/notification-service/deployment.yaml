@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: notification-service:latest
+        image: eventflex.azurecr.io/notification-service:$(Build.BuildId)
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3003

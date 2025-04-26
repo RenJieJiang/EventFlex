@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: user-management-api
-        image: user-management-api:latest
+        image: eventflex.azurecr.io/user-management-api:$(Build.BuildId)
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080

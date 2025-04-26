@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: messaging-service
-        image: messaging-service:latest
+        image: eventflex.azurecr.io/messaging-service:$(Build.BuildId)
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3002

@@ -1,0 +1,21 @@
+# .azure-devops/templates/build-jobs.yml
+parameters:
+  services: []
+
+jobs:
+- ${{ each service in parameters.services }}:
+  - job: Build_${{ replace(service, '-', '_') }}
+    displayName: Build ${{ service }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Docker@2
+      displayName: Build and push ${{ service }} image
+      inputs:
+        command: buildAndPush
+        repository: ${{ service }}
+        dockerfile: ${{ service }}/Dockerfile
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(Build.BuildId)
+          latest

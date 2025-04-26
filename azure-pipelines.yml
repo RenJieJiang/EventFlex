@@ -1,0 +1,44 @@
+# azure-pipelines.yml
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - docs/*
+
+variables:
+  # Global variables
+  dockerRegistryServiceConnection: 'acr-eventflex-connection'
+  containerRegistry: 'eventflex.azurecr.io'
+  kubernetesServiceConnection: 'aks-eventflex-connection'
+  
+resources:
+  repositories:
+    - repository: self
+      type: git
+      name: EventFlex
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - template: .azure-devops/templates/build-jobs.yml
+    parameters:
+      services:
+        - eventflex-web
+        # - messaging-service
+        # - notification-service
+        # - event-type-management-api
+        # - user-management-api
+
+- stage: Deploy_Dev
+  displayName: Deploy to Dev
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - template: .azure-devops/templates/deploy-jobs.yml
+    parameters:
+      environment: 'dev'

@@ -18,7 +18,7 @@ spec:
         runAsUser: 1000
       containers:
       - name: eventflex-web
-        image: billyjiang/eventflex-web:latest
+        image: eventflex.azurecr.io/eventflex-web:$(Build.BuildId)
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000

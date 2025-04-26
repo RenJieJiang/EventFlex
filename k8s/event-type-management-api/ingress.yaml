@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: event-type-management-api-ingress
+  namespace: event-flex
+spec:
+  ingressClassName: contour
+  rules:
+  - host: eventflex.local
+    http:
+      paths:
+      - path: /api/event-types
+        pathType: Prefix
+        backend:
+          service:
+            name: event-type-management-api
+            port:
+              number: 80 

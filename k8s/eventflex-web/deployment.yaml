@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: eventflex-web
+  namespace: event-flex
 spec:
   replicas: 1
   selector:
@@ -12,12 +13,20 @@ spec:
       labels:
         app: eventflex-web
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
       containers:
       - name: eventflex-web
-        image: eventflex-web:latest
+        image: billyjiang/eventflex-web:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: API_GATEWAY_URL
+          value: "http://eventflex-gateway:80"
         resources:
           limits:
             memory: "512Mi"
@@ -25,3 +34,15 @@ spec:
           requests:
             memory: "256Mi"
             cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10

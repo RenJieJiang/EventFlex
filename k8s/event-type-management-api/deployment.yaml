@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-type-management-api
+  namespace: event-flex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-type-management-api
+  template:
+    metadata:
+      labels:
+        app: event-type-management-api
+    spec:
+      containers:
+      - name: event-type-management-api
+        image: event-type-management-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__MongoDb
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-credentials
+              key: connection-string
+        - name: MessagingService__Domain
+          value: "messaging-service"
+        - name: MessagingService__Port
+          value: "3002"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m" 

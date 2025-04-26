@@ -2,8 +2,16 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: eventflex-web-ingress
+  namespace: event-flex
+  annotations:
+    kubernetes.io/ingress.class: contour
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: contour
+  tls:
+  - hosts:
+    - eventflex.local
+    secretName: eventflex-tls
   rules:
   - host: eventflex.local
     http:

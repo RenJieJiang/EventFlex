@@ -22,7 +22,7 @@ variables:
   resourceGroupName: 'eventflex-rg'
   
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'MySelfHostedAgentPool'  # Changed from vmImage: 'ubuntu-latest'
 
 stages:
 - stage: Build

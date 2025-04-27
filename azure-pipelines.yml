@@ -21,6 +21,9 @@ resources:
       type: git
       name: EventFlex
 
+pool:
+  name: 'MySelfHostedAgentPool'
+  
 stages:
 - stage: Build
   displayName: Build stage

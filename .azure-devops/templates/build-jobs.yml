@@ -7,7 +7,7 @@ jobs:
   - job: Build_${{ replace(service, '-', '_') }}
     displayName: Build ${{ service }}
     pool:
-      vmImage: 'ubuntu-latest'
+      name: 'MySelfHostedAgentPool'  # Changed from vmImage: 'ubuntu-latest'
     steps:
     - task: Docker@2
       displayName: Build and push ${{ service }} image

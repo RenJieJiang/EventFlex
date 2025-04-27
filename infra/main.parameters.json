@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "dev"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "mongoDbConnectionString": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/0994c4a8-ff48-492d-a484-3d419e6ecac4/resourceGroups/MyAppResourceGroup/providers/Microsoft.KeyVault/vaults/eventflex-kv"
+        },
+        "secretName": "mongoDbConnectionString"
+      }
+    },
+    "messagingServiceDomain": {
+      "value": "messaging-service"
+    },
+    "messagingServicePort": {
+      "value": "3002"
+    }
+  }
+}
